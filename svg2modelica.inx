@@ -1,0 +1,16 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<inkscape-extension xmlns="http://www.inkscape.org/namespace/inkscape/extension">
+  <_name>SVG to modelica annotations</_name>
+  <id>de.thm.mni.isa.schoelzel.svg2modelica</id>
+  <dependency type="executable" location="extensions">svg2modelica.rb</dependency>
+  <dependency type="executable" location="extensions">svg2modelica.bat</dependency>
+  <output>
+    <extension>.mo</extension>
+    <mimetype>text/plain</mimetype>
+    <_filetypename>Modelica annotation (*.mo)</_filetypename>
+    <_filetypetooltip>Modelica annotation in a dummy class</_filetypetooltip>
+  </output>
+  <script>
+    <command reldir="extensions" >svg2modelica.bat</command>
+  </script>
+</inkscape-extension>
