@@ -11,6 +11,6 @@
     <_filetypetooltip>Modelica annotation in a dummy class</_filetypetooltip>
   </output>
   <script>
-    <command reldir="extensions" >svg2modelica.bat</command>
+    <command reldir="extensions">svg2modelica.bat</command>
   </script>
 </inkscape-extension>
