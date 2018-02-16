@@ -2,6 +2,7 @@
 require 'rexml/document'
 require 'java'
 require 'matrix'
+require 'set'
 JOptionPane = javax.swing.JOptionPane
 
 #log messages with JOptionPane
@@ -119,6 +120,7 @@ module GraphicItem
       \)\s*
     }x
     match = exp.match(att)
+    #TODO also apply all transformations of parent groups
     #TODO support for everything but skew could possibliy be added later
     #NOT SUPPORTED: any tranformation including multiple matrix() definitions or
     #instances of translate(), scale(), rotate(), skewX() or skewY()
@@ -278,6 +280,10 @@ class ModelicaGraphicsContainer
     doc.elements.each("//rect") {|c| 
       @elems << ModelicaRectangle.new(c,@nIndent+1)
     }
+    # TODO respect order of elements
+    doc.elements.each("//path") { |c|
+      @elems << ModelicaPolygon.new(c,@nIndent+1)
+    }
   end
   def add_element modelicaEl
     @elems << modelicaEl
@@ -346,6 +352,93 @@ class ModelicaRectangle < ModelicaElement
   end
   def set_border_pattern bp
     add_attribute("borderPattern",bp)
+  end
+end
+
+class ModelicaPolygon < ModelicaElement
+  include GraphicItem
+  include FilledShape
+  def initialize el, nIndent = 5
+    super("Polygon",el,nIndent=nIndent)
+  end
+  def add_attributes el
+    super
+    autoset_rotation_and_origin(el)
+    autoset_shape_values(el)
+    autoset_points_and_smooth(el)
+  end
+  def autoset_points_and_smooth(el)
+    d = el.attributes["d"]
+    points = parse_path(d)
+    set_points(points)
+    smoothOps = Set.new "csqtaCSQTA".split('')
+    set_smooth((Set.new(d.split('')) & smoothOps).size > 0)
+  end
+  def parse_path d
+    exp = /([a-zA-Z]|(?:-?\d+\.?\d*))[\s,]*/
+    tokens = d.scan(exp).flatten.map {|x| Float(x) rescue x }
+    #tokens[0] = 'M' if tokens[0] == 'm' # first move is always absolute
+    points = []
+    i = 0
+    x = 0
+    y = 0
+    mode = "abs"
+    width = 2
+    while i < tokens.size do
+      case tokens[i]
+        when 'M' # move to absolute
+          x = tokens[i+1]
+          y = tokens[i+2]
+          mode = "abs"
+          width = 2
+          i += 3
+        when 'm' # move to relative
+          x += tokens[i+1]
+          y += tokens[i+2]
+          mode = "rel"
+          width = 2
+          i += 3
+        when 'L' # line to absolute
+          points << [x, y] if points.empty?
+          x = tokens[i+1]
+          y = tokens[i+2]
+          points << [x, y]
+          mode = "abs"
+          width = 2
+          i += 3
+        when 'l' # line to relative
+          points << [x, y] if points.empty?
+          x += tokens[i+1]
+          y += tokens[i+2]
+          points << [x, y]
+          mode = "rel"
+          width = 2
+          i += 3
+        when 'z','Z'
+          i += 1
+        when Float
+          points << [x, y] if points.empty?
+          if mode == "abs"
+            x = tokens[i]
+            y = tokens[i+1]
+          else
+            x += tokens[i]
+            y += tokens[i+1]
+          end
+          points << [x, y]
+          i += width
+        else
+          raise "#{tokens[i]} not supported!"
+      end
+    end
+    return points
+  end
+  def set_points points
+    formatted = points.map { |x| "{#{x[0]}, #{x[1]}}" }
+    add_attribute("points","{#{formatted.join(",")}}")
+  end
+  def set_smooth isSmooth
+    add_attribute("smooth", "Smooth.Bezier") if isSmooth
   end
 end
 
