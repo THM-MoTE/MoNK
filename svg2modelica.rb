@@ -100,6 +100,12 @@ module Smooth
 end
 
 module GraphicItem
+  def x_coord x
+    x
+  end
+  def y_coord y
+    -y
+  end
   def set_origin x, y
     add_attribute("origin","{#{x},#{y}}")
   end
@@ -145,7 +151,7 @@ module GraphicItem
         )?
       \)
     }x
-    case transform
+    mat = case transform
       when exp_matrix
         rows = [
           [$1.to_f, $3.to_f, $5.to_f],
@@ -178,6 +184,12 @@ module GraphicItem
         # ignore what we cannot handle
         Matrix.I(3)
     end
+    flip = Matrix.rows([[1,0,0],[0,-1,0],[0,0,1]])
+    # flip coordinates, apply matrix to flipped points and flip back again
+    # this is required because the y axis of the SVG coordinate system starts
+    # at the top but the y axis of modelica starts at the bottom of the icon
+    return flip * mat * flip
+  end
   def decompose_matrix mat
     # decompose transformation matrix to angle + origin form
     tx = mat[0,2]
@@ -352,7 +364,7 @@ class ModelicaCoordinateSystem < ModelicaElement
   def find_extent svg
     w = svg.attributes["width"].to_f
     h = svg.attributes["height"].to_f
-    return [0,0,w,h]
+    return [0,-h,w,0]
   end
   def autoset_extent svg
     ext = find_extent(svg)
@@ -379,8 +391,8 @@ class ModelicaRectangle < ModelicaElement
   end
   def find_extent el
     #TODO fix coordinate system
-    x = el.attributes["x"].to_f
-    y = el.attributes["y"].to_f
+    x = x_coord(el.attributes["x"].to_f)
+    y = y_coord(el.attributes["y"].to_f)
     w = el.attributes["width"].to_f
     h = el.attributes["height"].to_f
     return [x,y,x+w,y+w]
@@ -476,7 +488,8 @@ class ModelicaPolygon < ModelicaElement
     return points
   end
   def set_points points
-    formatted = points.map { |x| "{#{x[0]}, #{x[1]}}" }
+    corrected = points.map { |p| [x_coord(p[0]), y_coord(p[1])] }
+    formatted = corrected.map { |x| "{#{x[0]}, #{x[1]}}" }
     add_attribute("points","{#{formatted.join(",")}}")
   end
   def set_smooth isSmooth
