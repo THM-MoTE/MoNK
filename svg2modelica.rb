@@ -148,8 +148,8 @@ module GraphicItem
     case transform
       when exp_matrix
         rows = [
-          [$1.to_f, $2.to_f, $3.to_f],
-          [$4.to_f, $5.to_f, $6.to_f],
+          [$1.to_f, $3.to_f, $5.to_f],
+          [$2.to_f, $4.to_f, $6.to_f],
           [0, 0, 1]
         ]
         Matrix.rows(rows)
