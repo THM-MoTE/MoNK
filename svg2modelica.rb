@@ -166,7 +166,7 @@ module GraphicItem
                * parse_transform("rotate(#{$1})") \
                * parse_transform("translate(#{-$2.to_f}, #{-$3.to_f})")
         else
-          alpha = $1.to_f / 360.0 * 2 * Math::PI
+          alpha = $1.to_f / 180.0 * Math::PI
           rows = [
             [Math.cos(alpha), -Math.sin(alpha), 0],
             [Math.sin(alpha), Math.cos(alpha) , 0],
