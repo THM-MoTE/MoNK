@@ -178,27 +178,23 @@ module GraphicItem
         # ignore what we cannot handle
         Matrix.I(3)
     end
+  def decompose_matrix mat
+    # decompose transformation matrix to angle + origin form
+    tx = mat[0,2]
+    ty = mat[1,2]
+    # remove translational component to obtain rotation matrix
+    rmat = mat - Matrix.rows([[0,0,tx],[0,0,ty],[0,0,0]])
+    # pass vector [1,0] through the rotation matrix
+    rotated_x = rmat * Matrix.columns([[1,0,1]])
+    # determine angle between starting vector and rotated vector
+    alpha = Math.atan2(rotated_x[1,0],rotated_x[0,0]) # - Math.atan2(0,1)
+    return tx, ty, alpha
   end
   def autoset_rotation_and_origin el
-    #svg matrix() describes a transformation from the object coordinate system
-    #BACK to the coordinate system of the container => invert matrix
     mat = get_matrix(el)
-    #to convert the matrix back to angle+origin notation needed for modelica
-    #we pass the points (0,0) and (0,1) through the matrix
-    p1 = mat * Matrix.columns([[0,0,1]])
-    p2 = mat * Matrix.columns([[0,1,1]])
-    #assuming that the result of the transform can be expressed as a translation
-    #followed by a rotation, one can build a system of linear equations to find
-    #the sine (s) and cosine(c) of the rotation as well as the translation vector
-    #(tx,ty). The assignments below reflect the resulting equations
-    x1 = p1[0,0]; y1 = p1[1,0]
-    x2 = p2[0,0]; y2 = p2[1,0]
-    s = x2 - x1
-    c = y2 - y1
-    ty = s*x1 + c*y1
-    tx = c == 0 ? (c*ty-y1)*1.0/s : (x1-s*ty)*1.0/c
+    tx, ty, alpha = decompose_matrix(mat)
     set_origin(tx,ty)
-    set_rotation(Math.atan2(s,c)/Math::PI*180)
+    set_rotation(alpha/Math::PI*180)
   end
 end
 
