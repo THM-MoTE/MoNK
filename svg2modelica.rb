@@ -106,36 +106,83 @@ module GraphicItem
   def set_rotation deg
     add_attribute("rotation",deg)
   end
-  def autoset_rotation_and_origin el
-    att = el.attributes["transform"]
-    exp = %r{
+  def get_matrix el
+    # get the transformation matrix for this element
+    return Matrix.I(3) if el == nil
+    mpar = get_matrix(el.parent)
+    mel = parse_transform(el.attributes["transform"])
+    return mpar * mel
+  end
+  def parse_transform transform
+    # return Matrix.I(3) if transform == nil
+    # TODO does not handle multiple transforms in one string
+    # NOT SUPPORTED: does not handle skew and scale
+    exp_matrix = %r{
       \s*matrix\s*
       \(
-      \s*(-?\d+\.?\d*)\s*,
-      \s*(-?\d+\.?\d*)\s*,
-      \s*(-?\d+\.?\d*)\s*,
-      \s*(-?\d+\.?\d*)\s*,
-      \s*(-?\d+\.?\d*)\s*,
-      \s*(-?\d+\.?\d*)\s*
+        \s*(-?\d+\.?\d*)[\s,]+
+        \s*(-?\d+\.?\d*)[\s,]+
+        \s*(-?\d+\.?\d*)[\s,]+
+        \s*(-?\d+\.?\d*)[\s,]+
+        \s*(-?\d+\.?\d*)[\s,]+
+        \s*(-?\d+\.?\d*)\s*
       \)\s*
     }x
-    match = exp.match(att)
-    #TODO also apply all transformations of parent groups
-    #TODO support for everything but skew could possibliy be added later
-    #NOT SUPPORTED: any tranformation including multiple matrix() definitions or
-    #instances of translate(), scale(), rotate(), skewX() or skewY()
-    if match == nil
-      set_origin(0,0)
-      set_rotation(0)
-      return
+    exp_translate = %r{
+      \s*translate\s*
+      \(
+        \s*(-?\d+\.?\d*)[\s,]+
+        \s*(-?\d+\.?\d*)\s*
+      \)
+    }x
+    exp_rotate = %r{
+      \s*rotate\s*
+      \(
+        \s*(-?\d+\.?\d*)\s*
+        (?:[\s,]+
+          \s*(-?\d+\.?\d*)[\s,]+
+          \s*(-?\d+\.?\d*)\s*
+        )?
+      \)
+    }x
+    case transform
+      when exp_matrix
+        rows = [
+          [$1.to_f, $2.to_f, $3.to_f],
+          [$4.to_f, $5.to_f, $6.to_f],
+          [0, 0, 1]
+        ]
+        Matrix.rows(rows)
+      when exp_translate
+        rows = [
+          [1, 0, $1.to_f],
+          [0, 1, $2.to_f],
+          [0, 0, 1]
+        ]
+        Matrix.rows(rows)
+      when exp_rotate
+        if $2 then
+          return parse_transform("translate(#{$2}, #{$3})") \
+               * parse_transform("rotate(#{$1})") \
+               * parse_transform("translate(#{-$2.to_f}, #{-$3.to_f})")
+        else
+          alpha = $1.to_f / 360.0 * 2 * Math::PI
+          rows = [
+            [Math.cos(alpha), -Math.sin(alpha), 0],
+            [Math.sin(alpha), Math.cos(alpha) , 0],
+            [0, 0, 1]
+          ]
+          Matrix.rows(rows)
+        end
+      else
+        # ignore what we cannot handle
+        Matrix.I(3)
     end
-    cols = []
-    cols << [match[1].to_f,match[2].to_f,0]
-    cols << [match[3].to_f,match[4].to_f,0]
-    cols << [match[5].to_f,match[6].to_f,1]
+  end
+  def autoset_rotation_and_origin el
     #svg matrix() describes a transformation from the object coordinate system
     #BACK to the coordinate system of the container => invert matrix
-    mat = Matrix.columns(cols).inverse
+    mat = get_matrix(el)
     #to convert the matrix back to angle+origin notation needed for modelica
     #we pass the points (0,0) and (0,1) through the matrix
     p1 = mat * Matrix.columns([[0,0,1]])
