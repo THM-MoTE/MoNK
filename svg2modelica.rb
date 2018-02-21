@@ -197,7 +197,6 @@ module GraphicItem
     c = y2 - y1
     ty = s*x1 + c*y1
     tx = c == 0 ? (c*ty-y1)*1.0/s : (x1-s*ty)*1.0/c
-    puts s,c,tx,ty
     set_origin(tx,ty)
     set_rotation(Math.atan2(s,c)/Math::PI*180)
   end
