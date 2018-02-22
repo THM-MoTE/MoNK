@@ -667,6 +667,4 @@ class ModelicaText < ModelicaElement
   end
 end
 
-#t = Test.new
-#puts t.css_rgb_to_modelica("rgb ( 0%  , 90% ,100%)")
-
+parseSVG(ARGV[0])
