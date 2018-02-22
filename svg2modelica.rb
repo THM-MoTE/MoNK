@@ -631,7 +631,7 @@ class ModelicaText < ModelicaElement
     # get the calculated font size from our data and transform it to mm
     font_size = @data["fontSize"].to_f * 25.4/72
     # determine text width and height in number of characters
-    text = @data["textString"]
+    text = eval(@data["textString"])
     text_w = text.split("\n").map{|x| x.size}.max
     text_h = text.split("\n").size
     set_extent(
@@ -656,7 +656,7 @@ class ModelicaText < ModelicaElement
     add_attribute("extent","{{#{x1},#{y1}},{#{x2},#{y2}}}")
   end
   def set_text_string str
-    add_attribute("textString", "\"#{str}\"")
+    add_attribute("textString", str.inspect)
   end
   def set_font fontName, fontSize, style
     styles = { 
