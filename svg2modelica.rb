@@ -336,7 +336,11 @@ class ModelicaGraphicsContainer
     }
     # TODO respect order of elements
     doc.elements.each("//path") { |c|
-      @elems << ModelicaPolygon.new(c,@nIndent+1)
+      if c.attributes["sodipodi:type"] == "arc" then
+        @elems << ModelicaEllipse.new(c,@nIndent+1)
+      else
+        @elems << ModelicaPolygon.new(c,@nIndent+1)
+      end
     }
     doc.elements.each("//circle") { |c|
       @elems << ModelicaEllipse.new(c,@nIndent+1)
@@ -425,20 +429,38 @@ class ModelicaEllipse < ModelicaElement
     autoset_rotation_and_origin(el)
     autoset_shape_values(el)
     autoset_extent(el)
+    autoset_angles(el)
+  end
+  def set_angles startAngle, endAngle
+    add_attribute("startAngle", startAngle)
+    add_attribute("endAngle", endAngle)
+  end
+  def autoset_angles(el)
+    return if el.name != "path"
+    startAngle = el.attributes["sodipodi:start"].to_f / Math::PI * 180.0
+    endAngle = el.attributes["sodipodi:end"].to_f / Math::PI * 180.0
+    set_angles(360-startAngle, 360-endAngle)
   end
   def set_extent x1, y1, x2, y2
     add_attribute("extent","{{#{x1},#{y1}},{#{x2},#{y2}}}")
   end
   def find_extent el
-    cx = el.attributes["cx"].to_f
-    cy = el.attributes["cy"].to_f
     case el.name
       when "circle"
+        cx = el.attributes["cx"].to_f
+        cy = el.attributes["cy"].to_f
         rx = el.attributes["r"].to_f
         ry = el.attributes["r"].to_f
       when "ellipse"
+        cx = el.attributes["cx"].to_f
+        cy = el.attributes["cy"].to_f
         rx = el.attributes["rx"].to_f
         ry = el.attributes["ry"].to_f
+      when "path"
+        cx = el.attributes["sodipodi:cx"].to_f
+        cy = el.attributes["sodipodi:cy"].to_f
+        rx = el.attributes["sodipodi:rx"].to_f
+        ry = el.attributes["sodipodi:ry"].to_f
     end
     return [x_coord(cx-rx),y_coord(cy-ry),x_coord(cx+rx),y_coord(cy+ry)]
   end
