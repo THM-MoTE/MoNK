@@ -656,7 +656,7 @@ class ModelicaText < ModelicaElement
     add_attribute("extent","{{#{x1},#{y1}},{#{x2},#{y2}}}")
   end
   def set_text_string str
-    add_attribute("textString", str)
+    add_attribute("textString", "\"#{str}\"")
   end
   def set_font fontName, fontSize, style
     styles = { 
