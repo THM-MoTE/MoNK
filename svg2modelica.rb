@@ -578,6 +578,15 @@ class ModelicaText < ModelicaElement
     autoset_extent(el)
     autoset_horizontal_alignment(el)
   end
+  def autoset_shape_values el
+    super
+    # modelica uses the line color for text while SVG uses the fill color
+    # => switch those
+    @data["lineColor"] = @data["fillColor"]
+    @data["pattern"] = @data["fillPattern"].sub(/FillPattern/,"LinePattern")
+    @data.delete("fillColor")
+    @data.delete("fillPattern")
+  end
   def autoset_text_string el
     text = if el[0].instance_of? REXML::Text then
       el.get_text.to_s
