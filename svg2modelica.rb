@@ -604,7 +604,10 @@ class ModelicaText < ModelicaElement
     exp_match = /(-?\d+.?\d*)([a-zA-Z]*)/.match(size_str)
     raise "cannot understand size #{size_str}" unless exp_match
     # modelica coordinates are assumed to be in mm, so we set 1px = 1mm
-    factors = { pt: 25.4/72, px: 1, pc: 12, mm: 1, cm: 10, in: 25.4}
+    factors = { 
+      "pt" => 25.4/72, "px" => 1, "pc" => 12, "mm" => 1,
+      "cm" => 10, "in" => 25.4
+    }
     _, number, unit = exp_match
     return number.to_f * factors[unit] / factors["pt"]
   end
@@ -650,7 +653,8 @@ class ModelicaText < ModelicaElement
   end
   def set_font fontName, fontSize, style
     styles = { 
-      i: "TextStyle.Italic", b: "TextStyle.Bold", u: "TextStyle.UnderLine"
+      :i => "TextStyle.Italic", :b => "TextStyle.Bold",
+      :u => "TextStyle.UnderLine"
     }
     style_string = style.split("").map{|x| styles[x]}.join(",")
     add_attribute("textStyle", "{#{style_string}}")
@@ -659,8 +663,8 @@ class ModelicaText < ModelicaElement
   end
   def set_horizontal_alignment align
     css_align_to_modelica = { 
-      left: "TextAlignment.Left", right: "TextAlignment.Right",
-      center: "TextAlignment.Center"
+      "left" => "TextAlignment.Left", "right" => "TextAlignment.Right",
+      "center" => "TextAlignment.Center"
     }
     alignType = css_align_to_modelica[align]
     add_attribute("horizontalAlignment", alignType)
