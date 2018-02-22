@@ -602,6 +602,7 @@ class ModelicaText < ModelicaElement
     return fontName, to_pt(fontSize), style
   end
   def to_pt size_str
+    return nil unless size_str
     exp_match = /(-?\d+.?\d*)([a-zA-Z]*)/.match(size_str)
     raise "cannot understand size #{size_str}" unless exp_match
     # modelica coordinates are assumed to be in mm, so we set 1px = 1mm
