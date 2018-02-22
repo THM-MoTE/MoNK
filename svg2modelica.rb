@@ -680,7 +680,10 @@ class ModelicaText < ModelicaElement
   def set_horizontal_alignment align
     css_align_to_modelica = { 
       "left" => "TextAlignment.Left", "right" => "TextAlignment.Right",
-      "center" => "TextAlignment.Center"
+      "center" => "TextAlignment.Center",
+      # NOTE: the following definitions are not valid according to the SVG spec,
+      # but they occur in inkscape (bug?)
+      "start" => "TextAlignment.Left", "end" => "TextAlignment.Right"
     }
     alignType = css_align_to_modelica[align]
     add_attribute("horizontalAlignment", alignType)
