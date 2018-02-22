@@ -575,8 +575,8 @@ class ModelicaText < ModelicaElement
     autoset_shape_values(el)
     autoset_text_string(el)
     autoset_font(el)
-    autoset_extent(el)
     autoset_horizontal_alignment(el)
+    autoset_extent(el)
   end
   def autoset_shape_values el
     super
@@ -643,12 +643,27 @@ class ModelicaText < ModelicaElement
     text = eval(@data["textString"])
     text_w = text.split("\n").map{|x| x.size}.max
     text_h = text.split("\n").size
-    set_extent(
-      x_coord(x),
-      y_coord(y),
-      x_coord(x + text_w * font_size * 0.5),
-      y_coord(y + text_h * font_size * 1.25)
-    )
+    # guess how much pixels (or mm) that would be based on font_size
+    w = text_w * font_size * 0.5
+    h = text_h * font_size + [0, text_h-1].max * font_size * 0.2
+    case @data["horizontalAlignment"]
+      when "TextAlignment.Left"
+        x1 = x
+        y1 = y - 0.8 * font_size
+        x2 = x + w
+        y2 = y + h - 0.8 * font_size
+      when "TextAlignment.Right"
+        x1 = x - w
+        y1 = y - 0.8 * font_size
+        x2 = x
+        y2 = y + h - 0.8 * font_size
+      when "TextAlignment.Center"
+        x1 = x - w/2
+        y1 = y - w/2 + 0.2 * font_size
+        x2 = x + w/2
+        y2 = y + w/2 + 0.2 * font_size
+    end
+    set_extent(x_coord(x1), y_coord(y1), x_coord(x2), y_coord(y2))
   end
   def autoset_horizontal_alignment el
     # first try: text-align attribute in <text> element
