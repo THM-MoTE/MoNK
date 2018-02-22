@@ -390,12 +390,11 @@ class ModelicaRectangle < ModelicaElement
     add_attribute("extent","{{#{x1},#{y1}},{#{x2},#{y2}}}")
   end
   def find_extent el
-    #TODO fix coordinate system
-    x = x_coord(el.attributes["x"].to_f)
-    y = y_coord(el.attributes["y"].to_f)
+    x = el.attributes["x"].to_f
+    y = el.attributes["y"].to_f
     w = el.attributes["width"].to_f
     h = el.attributes["height"].to_f
-    return [x,y,x+w,y+w]
+    return [x_coord(x),y_coord(y),x_coord(x+w),y_coord(y+h)]
   end
   def autoset_extent el
     ext = find_extent(el)
