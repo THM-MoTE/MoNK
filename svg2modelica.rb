@@ -645,7 +645,11 @@ class ModelicaText < ModelicaElement
     # first try: text-align attribute in <text> element
     alignOuter = get_style_attribute(el, "text-align")
     # override option: text-anchor attribute in <tspan> element
+    anchor_to_align = {
+      "start" => "left", "end" => "right", "middle" => "center"
+    }
     alignInner = get_style_attribute(el[0], "text-anchor")
+    alignInner = anchor_to_align[alignInner]
     set_horizontal_alignment(alignInner || alignOuter || "left")
   end
   def set_extent x1, y1, x2, y2
