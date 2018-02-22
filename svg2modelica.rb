@@ -348,6 +348,7 @@ class ModelicaGraphicsContainer
     doc.elements.each("//ellipse") { |c|
       @elems << ModelicaEllipse.new(c,@nIndent+1)
     }
+    # TODO (nice to have) support bitmap images
   end
   def add_element modelicaEl
     @elems << modelicaEl
