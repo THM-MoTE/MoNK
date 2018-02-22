@@ -615,9 +615,9 @@ class ModelicaText < ModelicaElement
     outerName, outerSize, outerStyle = get_font(el)
     innerName, innerSize, innerStyle = get_font(el[0])
     set_font(
-      innerName or outerName or "Arial",
-      innerSize or outerSize or "0",
-      innerStyle or outerStyle or ""
+      innerName || outerName || "Arial",
+      innerSize || outerSize || "0",
+      innerStyle || outerStyle || ""
     )
   end
   def autoset_extent el
@@ -643,7 +643,7 @@ class ModelicaText < ModelicaElement
     alignOuter = get_style_attribute(el, "text-align")
     # override option: text-anchor attribute in <tspan> element
     alignInner = get_style_attribute(el[0], "text-anchor")
-    set_horizontal_alignment(alignInner or alignOuter or "left")
+    set_horizontal_alignment(alignInner || alignOuter || "left")
   end
   def set_extent x1, y1, x2, y2
     add_attribute("extent","{{#{x1},#{y1}},{#{x2},#{y2}}}")
