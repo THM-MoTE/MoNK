@@ -664,7 +664,7 @@ class ModelicaText < ModelicaElement
       :u => "TextStyle.UnderLine"
     }
     style_string = style.split("").map{|x| styles[x]}.join(",")
-    add_attribute("textStyle", "{#{style_string}}")
+    add_attribute("textStyle", "{#{style_string}}") unless style.empty?
     add_attribute("fontName", fontName)
     add_attribute("fontSize", fontSize)
   end
