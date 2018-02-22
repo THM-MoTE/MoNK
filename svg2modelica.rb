@@ -688,3 +688,5 @@ class ModelicaText < ModelicaElement
 end
 
 parseSVG(ARGV[0])
+
+# TODO LinePattern.None
