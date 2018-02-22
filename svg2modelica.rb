@@ -610,7 +610,8 @@ class ModelicaText < ModelicaElement
       "pt" => 25.4/72, "px" => 1, "pc" => 12, "mm" => 1,
       "cm" => 10, "in" => 25.4
     }
-    _, number, unit = exp_match
+    number = exp_match[1]
+    unit = exp_match[2]
     return number.to_f * factors[unit] / factors["pt"]
   end
   def autoset_font el
