@@ -338,6 +338,12 @@ class ModelicaGraphicsContainer
     doc.elements.each("//path") { |c|
       @elems << ModelicaPolygon.new(c,@nIndent+1)
     }
+    doc.elements.each("//circle") { |c|
+      @elems << ModelicaEllipse.new(c,@nIndent+1)
+    }
+    doc.elements.each("//ellipse") { |c|
+      @elems << ModelicaEllipse.new(c,@nIndent+1)
+    }
   end
   def add_element modelicaEl
     @elems << modelicaEl
@@ -405,6 +411,40 @@ class ModelicaRectangle < ModelicaElement
   end
   def set_border_pattern bp
     add_attribute("borderPattern",bp)
+  end
+end
+
+class ModelicaEllipse < ModelicaElement
+  include GraphicItem
+  include FilledShape
+  def initialize el, nIndent = 5
+    super("Ellipse",el,nIndent=nIndent)
+  end
+  def add_attributes el
+    super
+    autoset_rotation_and_origin(el)
+    autoset_shape_values(el)
+    autoset_extent(el)
+  end
+  def set_extent x1, y1, x2, y2
+    add_attribute("extent","{{#{x1},#{y1}},{#{x2},#{y2}}}")
+  end
+  def find_extent el
+    cx = el.attributes["cx"].to_f
+    cy = el.attributes["cy"].to_f
+    case el.name
+      when "circle"
+        rx = el.attributes["r"].to_f
+        ry = el.attributes["r"].to_f
+      when "ellipse"
+        rx = el.attributes["rx"].to_f
+        ry = el.attributes["ry"].to_f
+    end
+    return [x_coord(cx-rx),y_coord(cy-ry),x_coord(cx+rx),y_coord(cy+ry)]
+  end
+  def autoset_extent el
+    ext = find_extent(el)
+    set_extent(ext[0],ext[1],ext[2],ext[3])
   end
 end
 
