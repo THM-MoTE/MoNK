@@ -5,6 +5,8 @@ require 'matrix'
 require 'set'
 JOptionPane = javax.swing.JOptionPane
 
+# TODO translate to python to release with less dependencies?
+
 #log messages with JOptionPane
 def log x
   JOptionPane.showMessageDialog(nil,x);
@@ -332,6 +334,7 @@ class ModelicaGraphicsContainer
     add_elements(doc)
   end
   def add_elements doc
+    # TODO rewrite this whole mess
     doc.elements.each("//rect") {|c| 
       @elems << ModelicaRectangle.new(c,@nIndent+1)
     }
@@ -339,8 +342,10 @@ class ModelicaGraphicsContainer
     doc.elements.each("//path") { |c|
       if c.attributes["sodipodi:type"] == "arc" then
         @elems << ModelicaEllipse.new(c,@nIndent+1)
-      else
+      elsif c.attributes["d"] =~ /.*[zZ]\s*$/
         @elems << ModelicaPolygon.new(c,@nIndent+1)
+      else
+        @elems << ModelicaLine.new(c,@nIndent+1)
       end
     }
     doc.elements.each("//circle") { |c|
@@ -475,16 +480,11 @@ class ModelicaEllipse < ModelicaElement
   end
 end
 
-class ModelicaPolygon < ModelicaElement
+class ModelicaPath < ModelicaElement
   include GraphicItem
-  include FilledShape
-  def initialize el, nIndent = 5
-    super("Polygon",el,nIndent=nIndent)
-  end
   def add_attributes el
     super
     autoset_rotation_and_origin(el)
-    autoset_shape_values(el)
     autoset_points_and_smooth(el)
   end
   def autoset_points_and_smooth(el)
@@ -560,6 +560,67 @@ class ModelicaPolygon < ModelicaElement
   end
   def set_smooth isSmooth
     add_attribute("smooth", "Smooth.Bezier") if isSmooth
+  end
+end
+
+# TODO handle smooth paths correctly (as far as possible)
+class ModelicaPolygon < ModelicaPath
+  include FilledShape
+  def initialize el, nIndent = 5
+    super("Polygon",el,nIndent=nIndent)
+  end
+  def add_attributes el
+    super
+    autoset_shape_values(el)
+  end
+end
+
+class ModelicaLine < ModelicaPath
+  include FilledShape # line is no filled shape, but we need some of the methods
+  def initialize el, nIndent = 5
+    super("Line",el,nIndent=nIndent)
+  end
+  def add_attributes el
+    super
+    autoset_thickness(el)
+    autoset_pattern(el)
+    autoset_color(el)
+    autoset_arrow(el)
+  end
+  def autoset_thickness(el)
+    thickness = find_line_thickness(el)
+    set_thickness(thickness)
+  end
+  def autoset_color(el)
+    color = find_line_color(el)
+    set_color(color) unless color.nil?
+  end
+  def autoset_pattern(el)
+    pattern = find_line_pattern(el)
+    set_pattern(pattern)
+  end
+  def autoset_arrow(el)
+    # if there is a marker, we just assume it's an arrow
+    # TODO we might try to interpret some of the marker names from inkscape
+    arrow_s = get_style_attribute(el,"marker-start")
+    arrow_e = get_style_attribute(el,"marker-end")
+    set_arrow(arrow_s, arrow_e, find_line_thickness(el)) if arrow_s || arrow_e
+  end
+  def set_thickness thick
+    add_attribute("thickness", thick)
+  end
+  def set_pattern pattern
+    add_attribute("pattern", pattern)
+  end
+  def set_color color
+    add_attribute("color", color)
+  end
+  def set_arrow arrow_s, arrow_e, size
+    # TODO we could give some choices here
+    arrow_s = if arrow_s then "Arrow.Open" else "Arrow.None" end
+    arrow_e = if arrow_e then "Arrow.Open" else "Arrow.None" end
+    add_attribute("arrow", "{#{arrow_s}, #{arrow_e}}")
+    add_attribute("arrowSize", size)
   end
 end
 
