@@ -26,6 +26,7 @@ def parseSVG fname
 end
 
 def get_style_attribute el, name
+  return nil if el.attributes["style"].nil?
   el.attributes["style"].split(";").each {|att|
     if att.start_with? (name+":")
       return att[name.length+1..-1]
