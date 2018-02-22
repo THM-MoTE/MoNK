@@ -348,6 +348,9 @@ class ModelicaGraphicsContainer
     doc.elements.each("//ellipse") { |c|
       @elems << ModelicaEllipse.new(c,@nIndent+1)
     }
+    doc.elements.each("//text") { |c|
+      @elems << ModelicaText.new(c,@nIndent+1)
+    }
     # TODO (nice to have) support bitmap images
   end
   def add_element modelicaEl
@@ -559,11 +562,109 @@ class ModelicaPolygon < ModelicaElement
   end
 end
 
-parseSVG(ARGV[0])
-
-class Test
+class ModelicaText < ModelicaElement
   include GraphicItem
   include FilledShape
+  def initialize el, nIndent = 5
+    super("Text",el,nIndent=nIndent)
+  end
+  def add_attributes el
+    super
+    autoset_rotation_and_origin(el)
+    autoset_shape_values(el)
+    autoset_text_string(el)
+    autoset_font(el)
+    autoset_extent(el)
+    autoset_horizontal_alignment(el)
+  end
+  def autoset_text_string el
+    text = if el[0].instance_of? REXML::Text then
+      el.get_text.to_s
+    else
+      Array.new(el).map{|x| x.get_text.to_s}.join("\n")
+    end
+    set_text_string(text)
+  end
+  def get_font el
+    return [nil, nil, nil] unless el.instance_of? REXML::Element
+    style = ""
+    f_style = get_style_attribute(el, "font-style")
+    f_weight = get_style_attribute(el, "font-weight")
+    t_deco = get_style_attribute(el, "text-decoration")
+    style << "i" if f_style == "italic"
+    style << "b" if f_weight == "bold"
+    style << "u" if t_deco == "underline"
+    # distinguish between no attributes given and all set to normal
+    style = nil if f_style.nil? and f_weight.nil? and t_deco.nil?
+    fontName = get_style_attribute(el, "font-family")
+    fontSize = get_style_attribute(el, "font-size")
+    return fontName, to_pt(fontSize), style
+  end
+  def to_pt size_str
+    exp_match = /(-?\d+.?\d*)([a-zA-Z]*)/.match(size_str)
+    raise "cannot understand size #{size_str}" unless exp_match
+    # modelica coordinates are assumed to be in mm, so we set 1px = 1mm
+    factors = { pt: 25.4/72, px: 1, pc: 12, mm: 1, cm: 10, in: 25.4}
+    _, number, unit = exp_match
+    return number.to_f * factors[unit] / factors["pt"]
+  end
+  def autoset_font el
+    outerName, outerSize, outerStyle = get_font(el)
+    innerName, innerSize, innerStyle = get_font(el[0])
+    set_font(
+      innerName or outerName or "Arial",
+      innerSize or outerSize or "0",
+      innerStyle or outerStyle or ""
+    )
+  end
+  def autoset_extent el
+    x = el.attributes["x"].to_f
+    y = el.attributes["y"].to_f
+    # TODO can we do better for the extent? probably not without rendering the
+    # text element
+    # get the calculated font size from our data and transform it to mm
+    font_size = @data["fontSize"].to_f * 25.4/72
+    # determine text width and height in number of characters
+    text = @data["textString"]
+    text_w = text.split("\n").map{|x| x.size}.max
+    text_h = text.split("\n").size
+    set_extent(
+      x_coord(x),
+      y_coord(y),
+      x_coord(x + text_w * font_size * 0.5),
+      y_coord(y + text_h * font_size * 1.25)
+    )
+  end
+  def autoset_horizontal_alignment el
+    # first try: text-align attribute in <text> element
+    alignOuter = get_style_attribute(el, "text-align")
+    # override option: text-anchor attribute in <tspan> element
+    alignInner = get_style_attribute(el[0], "text-anchor")
+    set_horizontal_alignment(alignInner or alignOuter or "left")
+  end
+  def set_extent x1, y1, x2, y2
+    add_attribute("extent","{{#{x1},#{y1}},{#{x2},#{y2}}}")
+  end
+  def set_text_string str
+    add_attribute("textString", str)
+  end
+  def set_font fontName, fontSize, style
+    styles = { 
+      i: "TextStyle.Italic", b: "TextStyle.Bold", u: "TextStyle.UnderLine"
+    }
+    style_string = style.split("").map{|x| styles[x]}.join(",")
+    add_attribute("textStyle", "{#{style_string}}")
+    add_attribute("fontName", fontName)
+    add_attribute("fontSize", fontSize)
+  end
+  def set_horizontal_alignment align
+    css_align_to_modelica = { 
+      left: "TextAlignment.Left", right: "TextAlignment.Right",
+      center: "TextAlignment.Center"
+    }
+    alignType = css_align_to_modelica[align]
+    add_attribute("horizontalAlignment", alignType)
+  end
 end
 
 #t = Test.new
