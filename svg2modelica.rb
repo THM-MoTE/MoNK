@@ -581,7 +581,7 @@ class ModelicaText < ModelicaElement
     text = if el[0].instance_of? REXML::Text then
       el.get_text.to_s
     else
-      Array.new(el).map{|x| x.get_text.to_s}.join("\n")
+      el.children.map{|x| x.get_text.to_s}.join("\n")
     end
     set_text_string(text)
   end
