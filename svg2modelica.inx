@@ -3,7 +3,6 @@
   <_name>SVG to modelica annotations</_name>
   <id>de.thm.mni.isa.schoelzel.svg2modelica</id>
   <dependency type="executable" location="extensions">svg2modelica.rb</dependency>
-  <dependency type="executable" location="extensions">svg2modelica.bat</dependency>
   <param name="modelname" type="string" gui-text="Model name (should be the same as the file name)">DummyModel</param>
   <output>
     <extension>.mo</extension>
