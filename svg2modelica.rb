@@ -331,33 +331,42 @@ class ModelicaGraphicsContainer
   def initialize doc, nIndent = 4
     @nIndent = nIndent
     @elems = []
-    add_elements(doc)
+    add_descendants(doc.root)
   end
-  def add_elements doc
-    # TODO rewrite this whole mess
-    doc.elements.each("//rect") {|c| 
-      @elems << ModelicaRectangle.new(c,@nIndent+1)
-    }
-    # TODO respect order of elements
-    doc.elements.each("//path") { |c|
-      if c.attributes["sodipodi:type"] == "arc" then
-        @elems << ModelicaEllipse.new(c,@nIndent+1)
-      elsif c.attributes["d"] =~ /.*[zZ]\s*$/
-        @elems << ModelicaPolygon.new(c,@nIndent+1)
+  def to_modelica el
+    return nil unless el.instance_of? REXML::Element
+    case el.name
+      when "rect"
+        ModelicaRectangle.new(el, @nIndent+1)
+      when "path"
+        if el.attributes["sodipodi:type"] == "arc" then
+          ModelicaEllipse.new(el, @nIndent+1)
+        elsif el.attributes["d"] =~ /.*[zZ]\s*$/
+          ModelicaPolygon.new(el, @nIndent+1)
+        else
+          ModelicaLine.new(el, @nIndent+1)
+        end
+      when "circle"
+        ModelicaEllipse.new(el, @nIndent+1)
+      when "ellipse"
+        ModelicaEllipse.new(el, @nIndent+1)
+      when "text"
+        ModelicaText.new(el, @nIndent+1)
       else
-        @elems << ModelicaLine.new(c,@nIndent+1)
-      end
-    }
-    doc.elements.each("//circle") { |c|
-      @elems << ModelicaEllipse.new(c,@nIndent+1)
-    }
-    doc.elements.each("//ellipse") { |c|
-      @elems << ModelicaEllipse.new(c,@nIndent+1)
-    }
-    doc.elements.each("//text") { |c|
-      @elems << ModelicaText.new(c,@nIndent+1)
-    }
+        nil
+    end
     # TODO (nice to have) support bitmap images
+  end
+  def add_descendants el
+    el.children.each do |c|
+      m = to_modelica(c)
+      # exclude definitions and text nodes
+      if m.nil? && c.instance_of?(REXML::Element) && c.name != "defs" then
+        add_descendants(c)
+      elsif !m.nil?
+        @elems << m
+      end
+    end
   end
   def add_element modelicaEl
     @elems << modelicaEl
