@@ -1,30 +1,22 @@
 # encoding: UTF-8
 require 'rexml/document'
-require 'java'
 require 'matrix'
 require 'set'
-JOptionPane = javax.swing.JOptionPane
+require 'getoptlong'
 
 # TODO translate to python to release with less dependencies?
 
-#log messages with JOptionPane
-def log x
-  JOptionPane.showMessageDialog(nil,x);
-end
-
 INDENT = "  "
-HEAD = "model DummyModel\n#{INDENT}annotation(\n"
-FOOT = "#{INDENT});\nend DummyModel;"
 
-def parseSVG fname
+def parseSVG fname, modelname
   xml = REXML::Document.new(File.open(fname))
   models = []
   models << ModelicaIcon.new(xml)
   first = true
-  puts HEAD
-  print INDENT*2
+  puts "model #{modelname}\n#{INDENT}annotation(\n"
+  print "#{INDENT*2}"
   puts models.join(",\n"+INDENT*2)
-  puts FOOT
+  puts "#{INDENT});\nend #{modelname};"
 end
 
 def get_style_attribute el, name
@@ -775,4 +767,14 @@ class ModelicaText < ModelicaElement
   end
 end
 
-parseSVG(ARGV[0])
+modelname = "DummyModel"
+opts = GetoptLong.new(
+  ["--modelname", "-m", GetoptLong::OPTIONAL_ARGUMENT]
+)
+opts.each do |opt, arg|
+  case opt
+    when "--modelname"
+      modelname = arg
+  end
+end
+parseSVG(ARGV.shift, modelname)

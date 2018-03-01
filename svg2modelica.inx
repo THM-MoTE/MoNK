@@ -4,6 +4,7 @@
   <id>de.thm.mni.isa.schoelzel.svg2modelica</id>
   <dependency type="executable" location="extensions">svg2modelica.rb</dependency>
   <dependency type="executable" location="extensions">svg2modelica.bat</dependency>
+  <param name="modelname" type="string" gui-text="Model name (should be the same as the file name)">DummyModel</param>
   <output>
     <extension>.mo</extension>
     <mimetype>text/plain</mimetype>
@@ -11,6 +12,6 @@
     <_filetypetooltip>Modelica annotation in a dummy class</_filetypetooltip>
   </output>
   <script>
-    <command reldir="extensions">svg2modelica.bat</command>
+    <command reldir="extensions" interpreter="ruby">svg2modelica.rb</command>
   </script>
 </inkscape-extension>
