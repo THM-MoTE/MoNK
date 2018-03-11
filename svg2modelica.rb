@@ -374,6 +374,8 @@ end
 class ModelicaCoordinateSystem < ModelicaElement
   def initialize svg, nIndent = 4
     super("coordinateSystem",svg,nIndent=nIndent)
+    @px2mm_factor_x = 1
+    @px2mm_factor_y = 1
   end
   def add_attributes svg
     add_attribute("preserveAspectRatio","false")
@@ -385,7 +387,14 @@ class ModelicaCoordinateSystem < ModelicaElement
   def find_extent svg
     w = svg.attributes["width"].to_f
     h = svg.attributes["height"].to_f
-    return [0,-h,w,0]
+    if svg.attributes["viewBox"] then
+      xv, yv, wv, hv = svg.attributes["viewBox"].split(/\s+/).map{|x| x.to_f}
+      @px2mm_factor_x = w/wv.to_f
+      @px2mm_factor_y = h/hv.to_f
+      return [xv, yv-hv, xv+wv, yv]
+    else
+      return [0,-h,w,0]
+    end
   end
   def autoset_extent svg
     ext = find_extent(svg)
