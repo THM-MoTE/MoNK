@@ -5,6 +5,7 @@ require 'set'
 require 'getoptlong'
 
 # TODO translate to python to release with less dependencies?
+# TODO let the user choose if non-translateable elements should be reported as errors
 
 INDENT = "  "
 
