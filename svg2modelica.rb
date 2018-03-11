@@ -331,9 +331,12 @@ class ModelicaGraphicsContainer
       when "rect"
         ModelicaRectangle.new(el, @nIndent+1)
       when "path"
+        fill = get_style_attribute(el, "fill")
         if el.attributes["sodipodi:type"] == "arc" then
           ModelicaEllipse.new(el, @nIndent+1)
         elsif el.attributes["d"] =~ /.*[zZ]\s*$/
+          ModelicaPolygon.new(el, @nIndent+1)
+        elsif !fill.nil? && (fill != "none")
           ModelicaPolygon.new(el, @nIndent+1)
         else
           ModelicaLine.new(el, @nIndent+1)
