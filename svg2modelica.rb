@@ -459,7 +459,7 @@ class ModelicaEllipse < ModelicaElement
     return if el.name != "path"
     startAngle = el.attributes["sodipodi:start"].to_f / Math::PI * 180.0
     endAngle = el.attributes["sodipodi:end"].to_f / Math::PI * 180.0
-    set_angles(360-startAngle, 360-endAngle)
+    set_angles(startAngle, endAngle)
   end
   def set_extent x1, y1, x2, y2
     add_attribute("extent","{{#{x1},#{y1}},{#{x2},#{y2}}}")
