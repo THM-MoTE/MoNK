@@ -82,13 +82,13 @@ class InstallToExtensionDir(install):
     for f in glob.glob("src/**.py"):
       src = f
       dst = os.path.join(determine_user_ext(), os.path.relpath(f, "src"))
-      print("copying %s -> %s", src, dst)
+      print("copying %s -> %s" % (src, dst))
       #shutil.copyfile(src, dst)
     # copy .inx file(s) to extension dir
     for f in glob.glob("res/**"):
       src = f
       dst = os.path.join(determine_user_ext(), os.path.relpath(f, "res"))
-      print("copying %s -> %s", src, dst)
+      print("copying %s -> %s" % (src, dst))
       #shutil.copyfile(src, dst)
 
 version = '0.1.0'
