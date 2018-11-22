@@ -11,8 +11,8 @@ from setuptools import setup, Command
 from setuptools.command.install import install
 
 data_files = [
-  (os.path.relpath(os.path.dirname(x), "src"), x)
-  for x in glob.glob("res/**/*")
+  (os.path.relpath(os.path.dirname(x), "res"), [x])
+  for x in glob.glob("res/**")
 ]
 
 def determine_dir(name, filename, defaults={}):
@@ -48,13 +48,13 @@ def determine_user_ext():
 class InstallToExtensionDir(install):
   def run(self):
     # copy source files to extension dir
-    for f in glob.glob("src/**/*.py"):
+    for f in glob.glob("src/**.py"):
       src = f
       dst = os.path.join(determine_user_ext(), os.path.relpath(f, "src"))
       print("copying %s -> %s", src, dst)
       #shutil.copyfile(src, dst)
     # copy .inx file(s) to extension dir
-    for f in glob.glob("res/**/*"):
+    for f in glob.glob("res/**"):
       src = f
       dst = os.path.join(determine_user_ext(), os.path.relpath(f, "res"))
       print("copying %s -> %s", src, dst)
