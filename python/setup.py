@@ -7,6 +7,8 @@ import sys
 import os
 import glob
 import shutil
+import tarfile
+import zipfile
 from setuptools import setup, Command
 from setuptools.command.install import install
 
@@ -46,6 +48,33 @@ def determine_user_ext():
     "cygwin": os.path.expanduser(r'~\AppData\Roaming\inkscape\extensions'),
     "linux2": os.path.expanduser(r'~/.config/inkscape/extensions/'),
   })
+
+class BdistInkscape(Command):
+  user_options = []
+
+  def initialize_options(self):
+      pass
+
+  def finalize_options(self):
+      pass
+
+  def run(self):
+    files = []
+    files.extend([
+      (f, os.path.relpath(f, "src"))
+      for f in glob.glob("src/**")
+      if ".egg-info" not in f
+    ])
+    files.extend([
+      (f, os.path.relpath(f, "res"))
+      for f in glob.glob("res/**")
+    ])
+    with tarfile.open("dist/test.tar.gz", "w:gz") as tf:
+      for f,aname in files:
+        tf.add(f, arcname=aname)
+    with zipfile.ZipFile("dist/test.zip", "w") as zf:
+      for f,aname in files:
+        zf.write(f, arcname=aname)
 
 class InstallToExtensionDir(install):
   def run(self):
@@ -94,7 +123,8 @@ setup(
     'setuptools'
   ],
   cmdclass={
-    'install' : InstallToExtensionDir
+    'install' : InstallToExtensionDir,
+    'bdist_ink' : BdistInkscape
   },
   data_files=data_files,
   include_package_data=True
