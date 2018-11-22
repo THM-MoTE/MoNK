@@ -79,7 +79,7 @@ class BdistInkscape(Command):
 class InstallToExtensionDir(install):
   def run(self):
     # copy source files to extension dir
-    for f in glob.glob("src/**.py"):
+    for f in [x for x in glob.glob("src/**") if ".egg-info" not in x]:
       src = f
       dst = os.path.join(determine_user_ext(), os.path.relpath(f, "src"))
       print("copying %s -> %s" % (src, dst))
