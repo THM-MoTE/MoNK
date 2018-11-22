@@ -65,7 +65,6 @@ setup(
   name='svg2modelica',
   package_dir={'': 'src'},
   py_modules=['svg2modelica'],
-  packages=['svg2modelica'],
   version=version,
   platforms="any",
   license="MIT",
