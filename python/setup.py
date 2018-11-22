@@ -10,6 +10,11 @@ import shutil
 from setuptools import setup, Command
 from setuptools.command.install import install
 
+data_files = [
+  (os.path.relpath(os.path.dirname(x), "src"), x)
+  for x in glob.glob("res/**/*")
+]
+
 def determine_dir(name, filename, defaults={}):
   filepath = os.path.join(".paths", filename)
   if os.path.exists(filepath):
@@ -90,5 +95,6 @@ setup(
   cmdclass={
     'install' : InstallToExtensionDir
   },
+  data_files=data_files,
   include_package_data=True
 )
