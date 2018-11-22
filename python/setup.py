@@ -59,6 +59,10 @@ class BdistInkscape(Command):
       pass
 
   def run(self):
+    outfile = "{}-{}".format(
+      self.distribution.metadata.get_name(),
+      self.distribution.metadata.get_version()
+    )
     files = []
     files.extend([
       (f, os.path.relpath(f, "src"))
@@ -69,10 +73,10 @@ class BdistInkscape(Command):
       (f, os.path.relpath(f, "res"))
       for f in glob.glob("res/**")
     ])
-    with tarfile.open("dist/test.tar.gz", "w:gz") as tf:
+    with tarfile.open("dist/{}.tar.gz".format(outfile), "w:gz") as tf:
       for f,aname in files:
         tf.add(f, arcname=aname)
-    with zipfile.ZipFile("dist/test.zip", "w") as zf:
+    with zipfile.ZipFile("dist/{}.zip".format(outfile), "w") as zf:
       for f,aname in files:
         zf.write(f, arcname=aname)
 
