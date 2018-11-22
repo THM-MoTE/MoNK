@@ -16,6 +16,8 @@ data_files = [
 ]
 
 def determine_dir(name, filename, defaults={}):
+  if not os.path.exists(".paths"):
+    os.mkdir(".paths")
   filepath = os.path.join(".paths", filename)
   if os.path.exists(filepath):
     with open(filepath, 'r', encoding="UTF-8") as f:
