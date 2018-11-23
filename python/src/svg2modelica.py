@@ -1,5 +1,4 @@
 import getopt
-import sys
 
 # note this must be python 2.6, since inkscape ships with this version :/
 
@@ -8,8 +7,8 @@ if __name__ == '__main__':
     opts, args = getopt.getopt(sys.argv[1:], "m:s:", ["modelname=", "strict="])
   except getopt.GetoptError as err:
     print(str(err))
-    sys.exit(1)
     print("usage: python svg2modelica.py [-m modelname] [-s true/false]")
+    exit(1)
   strict = False
   modelname = "DummyModel"
   for k, v in opts:
