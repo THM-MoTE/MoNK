@@ -7,7 +7,7 @@ if __name__ == '__main__':
     opts, args = getopt.getopt(sys.argv[1:], "m:s:", ["modelname=", "strict="])
   except getopt.GetoptError as err:
     print(str(err))
-    print("usage: python svg2modelica.py [-m modelname] [-s true/false]")
+    print("usage: python svg2modelica.py [-m modelname] [-s true/false] filename")
     exit(1)
   strict = False
   modelname = "DummyModel"
