@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <inkscape-extension xmlns="http://www.inkscape.org/namespace/inkscape/extension">
   <_name>SVG to modelica annotations</_name>
-  <id>de.thm.mni.isa.schoelzel.svg2modelica</id>
+  <id>de.thm.mni.schoelzel.svg2modelica</id>
   <dependency type="executable" location="extensions">svg2modelica.py</dependency>
   <param name="modelname" type="string" gui-text="Model name (should be the same as the file name)">DummyModel</param>
+  <param name="strict" type="boolean" gui-text="Strict (non-translatable elements reported as error)">false</param>
   <output>
     <extension>.mo</extension>
     <mimetype>text/plain</mimetype>
