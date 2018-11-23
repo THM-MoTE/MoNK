@@ -46,9 +46,9 @@ class ModelicaElement(object):
       if len(self.data) > 0:
         inner += ","
       inner += line_delim
-    inner += (","+line_delim).join(["{}= {}".format(k, v) for k, v in self.data])
+    inner += (","+line_delim).join(["{0}= {1}".format(k, v) for k, v in self.data])
     inner += "\n"+INDENT*(self.n_indent-1)
-    res = "{}({})".format(self.name, inner)
+    res = "{0}({1})".format(self.name, inner)
     return res
 
 class ModelicaIcon(ModelicaElement):
