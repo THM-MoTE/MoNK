@@ -1,6 +1,21 @@
 import getopt
+import sys
+import lxml.etree as etree
+
+inkex_available = True
+
+try:
+  import inkex
+except:
+  inkex_available = False
 
 # note this must be python 2.6, since inkscape ships with this version :/
+
+def parse_svg(fname, modelname, strict=False):
+  with open(fname, "rb") as f:
+    parser = etree.XMLParser(encoding="utf-8")
+    document = etree.parse(f, parser=parser)
+  print(document)
 
 if __name__ == '__main__':
   try:
@@ -16,4 +31,5 @@ if __name__ == '__main__':
       strict = bool(v)
     elif k in ("-m", "--modelname"):
       modelname = v
-  print("foo %s %s" % (strict, modelname))
+  fname = args[0]
+  parse_svg(fname, modelname, strict=strict)
