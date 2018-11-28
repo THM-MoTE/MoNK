@@ -197,7 +197,7 @@ class GraphicItem(object):
       return np.eye(3, dtype="float32")
     mpar = self.get_matrix(el.getparent())
     mel = self.parse_transform(el.get("transform"))
-    return mpar * mel
+    return mpar.dot(mel)
   def parse_transform(self, transform):
     # TODO does not handle multiple transforms in one string
     # NOT SUPPORTED: does not handle skew and scale
@@ -377,7 +377,6 @@ class FilledShape(object):
     self.autoset_fill_pattern(el)
     self.autoset_line_thickness(el)
 
-
 class ModelicaEllipse(ModelicaElement, GraphicItem, FilledShape):
   def __init__(self, el, n_indent = 5):
     super(ModelicaEllipse, self).__init__("Ellipse", el, n_indent=n_indent)
@@ -422,6 +421,303 @@ class ModelicaEllipse(ModelicaElement, GraphicItem, FilledShape):
   def autoset_extent (self,  el):
     ext = self.find_extent(el)
     self.set_extent(*ext)
+
+class ModelicaRectangle(ModelicaElement, GraphicItem, FilledShape):
+  def __init__(self, el, n_indent=5):
+    super(ModelicaRectangle, self).__init__("Rectangle",el,n_indent=n_indent)
+  def add_attributes(self, el):
+    ModelicaElement.add_attributes(self, el)
+    self.autoset_rotation_and_origin(el)
+    self.autoset_shape_values(el)
+    self.autoset_extent(el)
+    #TODO corner radius
+    #UNSUPPORTED ATTRIBUTES: borderPattern
+  def set_extent(self, x1, y1, x2, y2):
+    self.add_attribute("extent","{{%d,%d},{%d,%d}}" % (x1, y1, x2, y2))
+  def find_extent(self, el):
+    x = float(el.get("x"))
+    y = float(el.get("y"))
+    w = float(el.get("width"))
+    h = float(el.get("height"))
+    return [
+      self.x_coord(x), self.y_coord(y),
+      self.x_coord(x+w), self.y_coord(y+h)
+    ]
+  def autoset_extent(self, el):
+    ext = self.find_extent(el)
+    self.set_extent(*ext)
+  def set_corner_radius(self, cr):
+    self.add_attribute("radius",cr)
+  def set_border_pattern(self, bp):
+    self.add_attribute("borderPattern",bp)
+
+
+class ModelicaPath(ModelicaElement, GraphicItem):
+  def __init__(self, name, el, n_indent=3):
+    super(ModelicaPath, self).__init__(name, el, n_indent)
+  def add_attributes(self, el):
+    ModelicaElement.add_attributes(self, el)
+    self.autoset_rotation_and_origin(el)
+    self.autoset_points_and_smooth(el)
+  def autoset_points_and_smooth(self,(el)):
+    d = el.get("d")
+    points = self.parse_path(d)
+    self.set_points(points)
+    smoothOps = frozenset("csqtaCSQTA")
+    self.set_smooth(len(frozenset(d) & smoothOps) > 0)
+  def parse_path(self, d):
+    exp = re.compile(r"([a-zA-Z]|(?:-?\d+\.?\d*))[\s,]*")
+    def float_or_self(x):
+      try:
+        return float(x)
+      except:
+        return x
+    tokens = [float_or_self(x) for x in exp.finditer(d)]
+    points = []
+    i = 0
+    x = 0
+    y = 0
+    mode = "abs"
+    width = 2
+    while i < len(tokens):
+      if tokens[i] == 'M': # move to absolute
+        x = tokens[i+1]
+        y = tokens[i+2]
+        mode = "abs"
+        width = 2
+        i += 3
+      elif tokens[i] == 'm': # move to relative
+        x += tokens[i+1]
+        y += tokens[i+2]
+        mode = "rel"
+        width = 2
+        i += 3
+      elif tokens[i] == 'L': # line to absolute
+        if len(points) == 0:
+          points.append([x, y])
+        x = tokens[i+1]
+        y = tokens[i+2]
+        points.append([x, y])
+        mode = "abs"
+        width = 2
+        i += 3
+      elif tokens[i] == 'l': # line to relative
+        if len(points) == 0:
+          points.append([x, y])
+        x += tokens[i+1]
+        y += tokens[i+2]
+        points.append([x, y])
+        mode = "rel"
+        width = 2
+        i += 3
+      elif tokens[i] in ['z','Z']:
+        i += 1
+      elif isinstance(float, tokens[i]):
+        if len(points) == 0:
+          points.append([x, y])
+        if mode == "abs":
+          x = tokens[i]
+          y = tokens[i+1]
+        else:
+          x += tokens[i]
+          y += tokens[i+1]
+        points.append([x, y])
+        i += width
+      else:
+        # TODO handle smooth paths correctly (as far as possible)
+        # UNSUPPORTED: smooth paths
+        raise ValueError("#{0} not supported!".format(tokens[i]))
+    return points
+  def set_points(self, points):
+    corrected = [[self.x_coord(x), self.y_coord(y)] for x, y in points]
+    formatted = ["{%d}, {%d}" % (x, y) for x, y in corrected]
+    self.add_attribute("points","{%s}" % ", ".join(formatted))
+  def set_smooth(self, isSmooth):
+    if isSmooth:
+      self.add_attribute("smooth", "Smooth.Bezier")
+
+class ModelicaPolygon(ModelicaPath, FilledShape):
+  def __init__(self, el, n_indent = 5):
+    super(ModelicaPolygon, self).__init__("Polygon", el, n_indent)
+  def add_attributes(self, el):
+    ModelicaPath.add_attributes(self, el)
+    self.autoset_shape_values(el)
+
+class ModelicaLine(ModelicaPath, FilledShape):
+  # line is no filled shape, but we need some of the methods
+  def __init__(self, el, n_indent = 5):
+    super(ModelicaLine, self).__init__("Line", el, n_indent)
+  def add_attributes(self, el):
+    ModelicaPath.add_attributes(self, el)
+    self.autoset_thickness(el)
+    self.autoset_pattern(el)
+    self.autoset_color(el)
+    self.autoset_arrow(el)
+  def autoset_thickness(self,el):
+    thickness = self.find_line_thickness(el)
+    self.set_thickness(thickness)
+  def autoset_color(self,el):
+    color = self.find_line_color(el)
+    if color is not None:
+      self.set_color(color)
+  def autoset_pattern(self,el):
+    pattern = self.find_line_pattern(el)
+    self.set_pattern(pattern)
+  def autoset_arrow(self,el):
+    # if there is a marker, we just assume it's an arrow
+    # TODO we might try to interpret some of the marker names from inkscape
+    arrow_s = self.get_style_attribute(el,"marker-start")
+    arrow_e = self.get_style_attribute(el,"marker-end")
+    if arrow_s is not None or arrow_e is not None:
+      self.set_arrow(arrow_s, arrow_e, self.find_line_thickness(el))
+  def set_thickness(self, thick):
+    self.add_attribute("thickness", thick)
+  def set_pattern(self, pattern):
+    self.add_attribute("pattern", pattern)
+  def set_color(self, color):
+    self.add_attribute("color", color)
+  def set_arrow(self, arrow_s, arrow_e, size):
+    # TODO we could give some choices here
+    arrow_s = "Arrow.Open" if arrow_s is not None else "Arrow.None"
+    arrow_e = "Arrow.Open" if arrow_e is not None else "Arrow.None"
+    self.add_attribute("arrow", "{%s, %s}" % (arrow_s, arrow_e))
+    self.add_attribute("arrowSize", size)
+
+class ModelicaText(ModelicaElement, GraphicItem, FilledShape):
+  def __init__(self, el, n_indent = 5):
+    super(ModelicaText, self).__init__("Text", el, n_indent)
+  def add_attributes(self, el):
+    ModelicaElement.add_attributes(self, el)
+    self.autoset_rotation_and_origin(el)
+    self.autoset_shape_values(el)
+    self.autoset_text_string(el)
+    self.autoset_font(el)
+    self.autoset_horizontal_alignment(el)
+    self.autoset_extent(el)
+  def autoset_shape_values(self, el):
+    ModelicaElement.autoset_shape_values(self, el)
+    # modelica uses the line color for text while SVG uses the fill color
+    # => switch those
+    self.data["lineColor"] = self.data["fillColor"]
+    self.data["pattern"] = self.data["fillPattern"].replace("FillPattern","LinePattern")
+    del self.data["fillColor"]
+    del self.data["fillPattern"]
+  def autoset_text_string(self, el):
+    if tn(el) == "text":
+      text = el.text
+    else:
+      "\n".join([c.text for c in el.getChildren()])
+    self.set_text_string(text)
+  def get_font(self, el):
+    if not isinstance(etree._Element, el):
+      return [None, None, None]
+    style = ""
+    f_style = self.get_style_attribute(el, "font-style")
+    f_weight = self.get_style_attribute(el, "font-weight")
+    t_deco = self.get_style_attribute(el, "text-decoration")
+    if f_style == "italic":
+      style.append("i")
+    if f_weight == "bold":
+      style.append("b")
+    if t_deco == "underline":
+      style.append("u")
+    # distinguish between no attributes given and all set to normal
+    if f_style is None and f_weight is None and f_deco is None:
+      style = None
+    fontName = self.get_style_attribute(el, "font-family")
+    fontSize = self.get_style_attribute(el, "font-size")
+    return fontName, self.to_pt(fontSize), style
+  def to_pt(self, size_str):
+    if size_str is None:
+      return None
+    exp_match = re.match(r"(-?\d+\.?\d*)([a-zA-Z]*)", size_str)
+    if exp_match is None:
+      raise ValueError("cannot understand size {0}".format(size_str))
+    # modelica coordinates are assumed to be in mm, so we set 1px = 1mm
+    factors = { 
+      "pt" : 25.4/72, "px" : 1, "pc" : 12, "mm" : 1,
+      "cm" : 10, "in" : 25.4
+    }
+    number = exp_match.group(1)
+    unit = exp_match.group(2)
+    return float(number) * factors[unit] / factors["pt"]
+  def autoset_font(self, el):
+    outerName, outerSize, outerStyle = self.get_font(el)
+    innerName, innerSize, innerStyle = self.get_font(el.getChildren()[0])
+    self.set_font(
+      innerName or outerName or "Arial",
+      innerSize or outerSize or "0",
+      innerStyle or outerStyle or ""
+    )
+  def autoset_extent(self, el):
+    x = float(el.get("x"))
+    y = float(el.get("y"))
+    # TODO can we do better for the extent? probably not without rendering the
+    # text element
+    # get the calculated font size from our data and transform it to mm
+    font_size = float(self.data["fontSize"]) * 25.4/72
+    # determine text width and height in number of characters
+    text = eval(self.data["textString"])
+    text_w = max([len(x) for x in text.split("\n")])
+    text_h = len(text.split("\n"))
+    # guess how much pixels (or mm) that would be based on font_size
+    w = text_w * font_size * 0.5
+    h = text_h * font_size + max(0, text_h-1) * font_size * 0.2
+    ha = self.data["horizontalAlignment"]
+    if ha == "TextAlignment.Left":
+      x1 = x
+      y1 = y - 0.8 * font_size
+      x2 = x + w
+      y2 = y + h - 0.8 * font_size
+    elif ha == "TextAlignment.Right":
+      x1 = x - w
+      y1 = y - 0.8 * font_size
+      x2 = x
+      y2 = y + h - 0.8 * font_size
+    elif ha == "TextAlignment.Center":
+      x1 = x - w/2
+      y1 = y - w/2 + 0.2 * font_size
+      x2 = x + w/2
+      y2 = y + w/2 + 0.2 * font_size
+    self.set_extent(
+      self.x_coord(x1), self.y_coord(y1),
+      self.x_coord(x2), self.y_coord(y2)
+    )
+  def autoset_horizontal_alignment(self, el):
+    # first try: text-align attribute in <text> element
+    alignOuter = self.get_style_attribute(el, "text-align")
+    # override option: text-anchor attribute in <tspan> element
+    anchor_to_align = {
+      "start" : "left", "end" : "right", "middle" : "center"
+    }
+    alignInner = self.get_style_attribute(el.getChildren()[0], "text-anchor")
+    alignInner = anchor_to_align[alignInner]
+    self.set_horizontal_alignment(alignInner or alignOuter or "left")
+  def set_extent(self, x1, y1, x2, y2):
+    self.add_attribute("extent","{{%d,%d},{%d,%d}}" % (x1, y1, x2, y2))
+  def set_text_string(self, s):
+    self.add_attribute("textString", repr(s))
+  def set_font(self, fontName, fontSize, style):
+    styles = { 
+      'i' : "TextStyle.Italic", 'b' : "TextStyle.Bold",
+      'u' : "TextStyle.UnderLine"
+    }
+    ",".join([styles[x] for x in style])
+    if len(style) > 0:
+      self.add_attribute("textStyle", "{%s}" % style_string)
+    self.add_attribute("fontName", fontName)
+    self.add_attribute("fontSize", fontSize)
+  def set_horizontal_alignment(self, align):
+    css_align_to_modelica = { 
+      "left" : "TextAlignment.Left", "right" : "TextAlignment.Right",
+      "center" : "TextAlignment.Center",
+      # NOTE: the following definitions are not valid according to the SVG spec,
+      # but they occur in inkscape (bug?)
+      "start" : "TextAlignment.Left", "end" : "TextAlignment.Right"
+    }
+    alignType = css_align_to_modelica[align]
+    self.add_attribute("horizontalAlignment", alignType)
+
 
 if __name__ == '__main__':
   try:
