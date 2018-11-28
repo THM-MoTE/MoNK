@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
-from __future__ import (absolute_import, division,
-                        print_function)
-from builtins import *
+# from __future__ import (absolute_import, division,
+#                         print_function)
+# from builtins import *
 
 import sys
 import os
@@ -11,6 +11,7 @@ import tarfile
 import zipfile
 from setuptools import setup, Command
 from setuptools.command.install import install
+import io
 
 data_files = [
   (os.path.relpath(os.path.dirname(x), "res"), [x])
@@ -22,7 +23,7 @@ def determine_dir(name, filename, defaults={}):
     os.mkdir(".paths")
   filepath = os.path.join(".paths", filename)
   if os.path.exists(filepath):
-    with open(filepath, 'r', encoding="UTF-8") as f:
+    with io.open(filepath, 'r', encoding="UTF-8") as f:
       return f.read()
   default = defaults.get(sys.platform, "")
   msg = "Please specify the {} or press enter to use the default.\n[{}]"
@@ -31,7 +32,7 @@ def determine_dir(name, filename, defaults={}):
     dirname = default
   msg = "Your path configuration will be saved in the file {} for further use."
   print(msg.format(filepath))
-  with open(filepath, 'w', encoding="UTF-8") as f:
+  with io.open(filepath, 'w', encoding="UTF-8") as f:
     f.write(dirname)
   return dirname
 
