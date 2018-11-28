@@ -40,8 +40,11 @@ def get_style_attribute(el, name):
     return None
   for att in el.get("style").split(";"):
     if att.startswith(name+":"):
-      return att[len(name)+1:-1]
+      return att[len(name)+1:]
   return None
+
+def get_ns_attribute(el, ns, att):
+  return el.get("{%s}%s" % (el.nsmap.get(ns), att))
 
 class ModelicaElement(object):
   def __init__(self, name, el, n_indent=3):
@@ -117,7 +120,7 @@ class ModelicaGraphicsContainer(object):
       return ModelicaRectangle(el, self.n_indent+1)
     elif tag == "path":
       fill = get_style_attribute(el, "fill")
-      if el.get("sodipodi:type") == "arc":
+      if get_ns_attribute(el, "sodipodi", "type") == "arc":
         return ModelicaEllipse(el, self.n_indent+1)
       elif re.match(r".*[zZ]\s*$", el.get("d")):
         return ModelicaPolygon(el, self.n_indent+1)
@@ -188,7 +191,7 @@ class GraphicItem(object):
   def y_coord(self, y):
     return -y
   def set_origin(self, x, y):
-    self.add_attribute("origin","{#{x},#{y}}")
+    self.add_attribute("origin","{%d,%d}" % (x, y))
   def set_rotation(self, deg):
     self.add_attribute("rotation",deg)
   def get_matrix(self, el):
@@ -197,7 +200,7 @@ class GraphicItem(object):
       return np.eye(3, dtype="float32")
     mpar = self.get_matrix(el.getparent())
     mel = self.parse_transform(el.get("transform"))
-    return mpar.dot(mel)
+    return np.dot(mpar, mel)
   def parse_transform(self, transform):
     # TODO does not handle multiple transforms in one string
     # NOT SUPPORTED: does not handle skew and scale
@@ -254,7 +257,7 @@ class GraphicItem(object):
         t = self.parse_transform("translate({1}, {2})".format(g[1], g[2]))
         r = self.parse_transform("rotate({1})".format(g[0]))
         ti = self.parse_transform("translate({1}, {2})".format(-g[1], -g[2]))
-        mat =  t.dot(r).dot(ti)
+        mat =  np.dot(np.dot(t, r), ti)
       else:
         alpha = float(g[0]) / 180.0 * np.pi
         mat = np.array([
@@ -270,7 +273,7 @@ class GraphicItem(object):
     # flip coordinates, apply matrix to flipped points and flip back again
     # this is required because the y axis of the SVG coordinate system starts
     # at the top but the y axis of modelica starts at the bottom of the icon
-    return flip.dot(mat).dot(flip)
+    return np.dot(np.dot(flip, mat), flip)
   def decompose_matrix(self, mat):
     # decompose transformation matrix to angle + origin form
     tx = mat[0,2]
@@ -278,7 +281,7 @@ class GraphicItem(object):
     # remove translational component to obtain rotation matrix
     rmat = mat - np.array([[0,0,tx],[0,0,ty],[0,0,0]], dtype="float32")
     # pass vector [1,0] through the rotation matrix
-    rotated_x = rmat.dot(np.array([[1],[0],[1]]))
+    rotated_x = np.dot(rmat, np.array([[1],[0],[1]]))
     # determine angle between starting vector and rotated vector
     alpha = np.arctan2(rotated_x[1,0],rotated_x[0,0])
     return tx, ty, alpha
@@ -350,7 +353,7 @@ class FilledShape(object):
     if "%" in att or att == "inherit":
       #NOT SUPPORTED (svg): inherit, percentage (need viewport info for that)
       return 1.0
-    return float(att)
+    return to_f(att)
   def autoset_line_thickness (self, el):
     val = self.find_line_thickness(el)
     if val is not None:
@@ -392,8 +395,8 @@ class ModelicaEllipse(ModelicaElement, GraphicItem, FilledShape):
   def autoset_angles (self, el):
     if tn(el) != "path":
       return
-    startAngle = float(el.get("sodipodi:start")) / np.pi * 180.0
-    endAngle = float(el.get("sodipodi:end")) / np.pi * 180.0
+    startAngle = float(get_ns_attribute(el, "sodipodi", "start")) / np.pi * 180.0
+    endAngle = float(get_ns_attribute(el, "sodipodi", "end")) / np.pi * 180.0
     self.set_angles(startAngle, endAngle)
   def set_extent (self,  x1, y1, x2, y2):
     self.add_attribute("extent","{{%d,%d},{%d,%d}}" % (x1, y1, x2, y2))
@@ -410,10 +413,10 @@ class ModelicaEllipse(ModelicaElement, GraphicItem, FilledShape):
       rx = float(el.get("rx"))
       ry = float(el.get("ry"))
     elif tag == "path":
-      cx = float(el.get("sodipodi:cx"))
-      cy = float(el.get("sodipodi:cy"))
-      rx = float(el.get("sodipodi:rx"))
-      ry = float(el.get("sodipodi:ry"))
+      cx = float(get_ns_attribute(el, "sodipodi", "cx"))
+      cy = float(get_ns_attribute(el, "sodipodi", "cy"))
+      rx = float(get_ns_attribute(el, "sodipodi", "rx"))
+      ry = float(get_ns_attribute(el, "sodipodi", "ry"))
     return [
       self.x_coord(cx-rx),self.y_coord(cy-ry),
       self.x_coord(cx+rx),self.y_coord(cy+ry)
@@ -472,7 +475,7 @@ class ModelicaPath(ModelicaElement, GraphicItem):
         return float(x)
       except:
         return x
-    tokens = [float_or_self(x) for x in exp.finditer(d)]
+    tokens = [float_or_self(x) for x in exp.findall(d)]
     points = []
     i = 0
     x = 0
@@ -512,7 +515,7 @@ class ModelicaPath(ModelicaElement, GraphicItem):
         i += 3
       elif tokens[i] in ['z','Z']:
         i += 1
-      elif isinstance(float, tokens[i]):
+      elif isinstance(tokens[i], float):
         if len(points) == 0:
           points.append([x, y])
         if mode == "abs":
@@ -526,11 +529,11 @@ class ModelicaPath(ModelicaElement, GraphicItem):
       else:
         # TODO handle smooth paths correctly (as far as possible)
         # UNSUPPORTED: smooth paths
-        raise ValueError("#{0} not supported!".format(tokens[i]))
+        raise ValueError("{0} not supported!".format(tokens[i]))
     return points
   def set_points(self, points):
     corrected = [[self.x_coord(x), self.y_coord(y)] for x, y in points]
-    formatted = ["{%d}, {%d}" % (x, y) for x, y in corrected]
+    formatted = ["{%d, %d}" % (x, y) for x, y in corrected]
     self.add_attribute("points","{%s}" % ", ".join(formatted))
   def set_smooth(self, isSmooth):
     if isSmooth:
@@ -566,8 +569,8 @@ class ModelicaLine(ModelicaPath, FilledShape):
   def autoset_arrow(self,el):
     # if there is a marker, we just assume it's an arrow
     # TODO we might try to interpret some of the marker names from inkscape
-    arrow_s = self.get_style_attribute(el,"marker-start")
-    arrow_e = self.get_style_attribute(el,"marker-end")
+    arrow_s = get_style_attribute(el,"marker-start")
+    arrow_e = get_style_attribute(el,"marker-end")
     if arrow_s is not None or arrow_e is not None:
       self.set_arrow(arrow_s, arrow_e, self.find_line_thickness(el))
   def set_thickness(self, thick):
@@ -595,7 +598,7 @@ class ModelicaText(ModelicaElement, GraphicItem, FilledShape):
     self.autoset_horizontal_alignment(el)
     self.autoset_extent(el)
   def autoset_shape_values(self, el):
-    ModelicaElement.autoset_shape_values(self, el)
+    FilledShape.autoset_shape_values(self, el)
     # modelica uses the line color for text while SVG uses the fill color
     # => switch those
     self.data["lineColor"] = self.data["fillColor"]
@@ -603,18 +606,18 @@ class ModelicaText(ModelicaElement, GraphicItem, FilledShape):
     del self.data["fillColor"]
     del self.data["fillPattern"]
   def autoset_text_string(self, el):
-    if tn(el) == "text":
+    if tn(el) == "tspan":
       text = el.text
     else:
-      "\n".join([c.text for c in el.getChildren()])
+      text = "\n".join([c.text for c in el.iterchildren()])
     self.set_text_string(text)
   def get_font(self, el):
-    if not isinstance(etree._Element, el):
+    if not isinstance(el, etree._Element):
       return [None, None, None]
     style = ""
-    f_style = self.get_style_attribute(el, "font-style")
-    f_weight = self.get_style_attribute(el, "font-weight")
-    t_deco = self.get_style_attribute(el, "text-decoration")
+    f_style = get_style_attribute(el, "font-style")
+    f_weight = get_style_attribute(el, "font-weight")
+    t_deco = get_style_attribute(el, "text-decoration")
     if f_style == "italic":
       style.append("i")
     if f_weight == "bold":
@@ -622,10 +625,10 @@ class ModelicaText(ModelicaElement, GraphicItem, FilledShape):
     if t_deco == "underline":
       style.append("u")
     # distinguish between no attributes given and all set to normal
-    if f_style is None and f_weight is None and f_deco is None:
+    if f_style is None and f_weight is None and t_deco is None:
       style = None
-    fontName = self.get_style_attribute(el, "font-family")
-    fontSize = self.get_style_attribute(el, "font-size")
+    fontName = get_style_attribute(el, "font-family")
+    fontSize = get_style_attribute(el, "font-size")
     return fontName, self.to_pt(fontSize), style
   def to_pt(self, size_str):
     if size_str is None:
@@ -643,7 +646,7 @@ class ModelicaText(ModelicaElement, GraphicItem, FilledShape):
     return float(number) * factors[unit] / factors["pt"]
   def autoset_font(self, el):
     outerName, outerSize, outerStyle = self.get_font(el)
-    innerName, innerSize, innerStyle = self.get_font(el.getChildren()[0])
+    innerName, innerSize, innerStyle = self.get_font(el.getchildren()[0])
     self.set_font(
       innerName or outerName or "Arial",
       innerSize or outerSize or "0",
@@ -658,7 +661,7 @@ class ModelicaText(ModelicaElement, GraphicItem, FilledShape):
     font_size = float(self.data["fontSize"]) * 25.4/72
     # determine text width and height in number of characters
     text = eval(self.data["textString"])
-    text_w = max([len(x) for x in text.split("\n")])
+    text_w = max([len(s) for s in text.split("\n")])
     text_h = len(text.split("\n"))
     # guess how much pixels (or mm) that would be based on font_size
     w = text_w * font_size * 0.5
@@ -685,13 +688,14 @@ class ModelicaText(ModelicaElement, GraphicItem, FilledShape):
     )
   def autoset_horizontal_alignment(self, el):
     # first try: text-align attribute in <text> element
-    alignOuter = self.get_style_attribute(el, "text-align")
+    alignOuter = get_style_attribute(el, "text-align")
     # override option: text-anchor attribute in <tspan> element
     anchor_to_align = {
       "start" : "left", "end" : "right", "middle" : "center"
     }
-    alignInner = self.get_style_attribute(el.getChildren()[0], "text-anchor")
-    alignInner = anchor_to_align[alignInner]
+    alignInner = get_style_attribute(el.getchildren()[0], "text-anchor")
+    if alignInner is not None:
+      alignInner = anchor_to_align[alignInner]
     self.set_horizontal_alignment(alignInner or alignOuter or "left")
   def set_extent(self, x1, y1, x2, y2):
     self.add_attribute("extent","{{%d,%d},{%d,%d}}" % (x1, y1, x2, y2))
