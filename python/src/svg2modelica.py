@@ -359,9 +359,9 @@ class FilledShape(object):
     if val is not None:
       self.set_line_thickness(val)
   def css_hex_to_modelica (self, hexstr):
-    hexstr = hexstr[1:-1]
+    hexstr = hexstr[1:]
     sz = 2 if len(hexstr) > 3 else 1
-    return "{%d,%d,%d}" % tuple([int(hexstr[i:i+sz], 16) for i in range(3)])
+    return "{%d,%d,%d}" % tuple([int(hexstr[i*sz:i*sz+sz], 16) for i in range(3)])
   def css_rgb_to_modelica (self, rgbstr):
     match = re.match(
       r"\s*rgb\s*\(\s*(\d+\%?)\s*,\s*(\d+\%?)\s*,\s*(\d+\%?)\s*\)\s*",
