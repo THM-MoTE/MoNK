@@ -78,8 +78,10 @@ class ModelicaElement(object):
 
 class ModelicaIcon(ModelicaElement):
   def __init__(self, doc, n_indent=3, normalize_extent=False, coords=None):
-    super(ModelicaIcon, self).__init__("Icon", doc, n_indent, coords=coords)
+    # needs to be initialized first, because add_attribute is called in
+    # superclass constructor
     self.norm_extent = normalize_extent
+    super(ModelicaIcon, self).__init__("Icon", doc, n_indent, coords=coords)
   def add_attributes(self, doc):
     coords = ModelicaCoordinateSystem(doc.getroot(),n_indent=self.n_indent+1, normalize_extent=self.norm_extent)
     self.add_element(coords)
