@@ -40,14 +40,14 @@ def determine_ext():
   return determine_dir("inkscape extension directory", "ext.txt", defaults={
     "win32": r'C:\Program Files\Inkscape\share\extensions',
     "cygwin": r'C:\Program Files\Inkscape\share\extensions',
-    "linux2": r'/usr/share/inkscape/extensions/',
+    "linux": r'/usr/share/inkscape/extensions/',
   })
 
 def determine_user_ext():
   return determine_dir("inkscape user extension directory", "user_ext.txt", defaults={
     "win32": os.path.expanduser(r'~\AppData\Roaming\inkscape\extensions'),
     "cygwin": os.path.expanduser(r'~\AppData\Roaming\inkscape\extensions'),
-    "linux2": os.path.expanduser(r'~/.config/inkscape/extensions/'),
+    "linux": os.path.expanduser(r'~/.config/inkscape/extensions/'),
   })
 
 class BdistInkscape(Command):
