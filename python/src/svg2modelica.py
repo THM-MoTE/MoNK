@@ -760,7 +760,7 @@ class ModelicaText(ModelicaElement, GraphicItem, FilledShape):
 
 if __name__ == '__main__':
   try:
-    opts, args = getopt.getopt(sys.argv[1:], "m:s:n", ["modelname=", "strict=", "normalize_extent="])
+    opts, args = getopt.getopt(sys.argv[1:], "m:s:n:", ["modelname=", "strict=", "normalize_extent="])
   except getopt.GetoptError as err:
     print(str(err))
     print("usage: python svg2modelica.py [-m modelname] [-s true/false] [-n true/false] filename")
