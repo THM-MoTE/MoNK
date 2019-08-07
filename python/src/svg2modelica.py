@@ -81,7 +81,7 @@ class ModelicaIcon(ModelicaElement):
     # needs to be initialized first, because add_attribute is called in
     # superclass constructor
     self.norm_extent = normalize_extent
-    super(ModelicaIcon, self).__init__("Icon", doc, n_indent, coords=coords)
+    ModelicaElement.__init__(self, "Icon", doc, n_indent, coords=coords)
   def add_attributes(self, doc):
     coords = ModelicaCoordinateSystem(doc.getroot(),n_indent=self.n_indent+1, normalize_extent=self.norm_extent)
     self.add_element(coords)
@@ -90,12 +90,13 @@ class ModelicaIcon(ModelicaElement):
 
 class ModelicaCoordinateSystem(ModelicaElement):
   def __init__(self, svg, n_indent = 4, normalize_extent=False):
-    super(ModelicaCoordinateSystem, self).__init__(
-      "coordinateSystem",svg,n_indent=n_indent
+    # needs to be set first to be available in add_attributes
+    self.norm_extent = normalize_extent
+    ModelicaElement.__init__(
+      self, "coordinateSystem",svg,n_indent=n_indent
     )
     self.px2mm_factor_x = 1
     self.px2mm_factor_y = 1
-    self.norm_extent = normalize_extent
   def normalize_x(self, x):
     if self.norm_extent:
       return (x - self.x_center) * self.scale
@@ -212,10 +213,8 @@ class Smooth:
   BEZIER = "Smooth.Bezier"
 
 class GraphicItem(object):
-  def __init__(*args, **kwargs):
-    # *args and **kwargs required to allow calls to super() in
-    # classes that use this class as one of multiple base classes
-    self.coords = kwargs["coords"]
+  def __init__(self, coords):
+    self.coords = coords
   def x_coord(self, x):
     if self.coords is not None:
       return self.coords.normalize_x(x)
@@ -329,10 +328,6 @@ class GraphicItem(object):
     self.set_rotation(alpha/np.pi*180)
 
 class FilledShape(object):
-  def __init__(*args, **kwargs):
-    # empty init method required to allow calls to super() in
-    # classes that use this class as one of multiple base classes
-    pass
   def set_line_color(self, r, g, b):
     self.add_attribute("lineColor","{%d,%d,%d}" % (r, g, b))
   def autoset_line_color(self, el):
@@ -419,7 +414,8 @@ class FilledShape(object):
 
 class ModelicaEllipse(ModelicaElement, GraphicItem, FilledShape):
   def __init__(self, el, n_indent = 5, coords=None):
-    super(ModelicaEllipse, self).__init__("Ellipse", el, n_indent, coords=coords)
+    GraphicItem.__init__(self, coords)
+    ModelicaElement.__init__(self, "Ellipse", el, n_indent, coords=coords)
   def add_attributes (self,  el):
     ModelicaElement.add_attributes(self, el)
     self.autoset_rotation_and_origin(el)
@@ -464,7 +460,8 @@ class ModelicaEllipse(ModelicaElement, GraphicItem, FilledShape):
 
 class ModelicaRectangle(ModelicaElement, GraphicItem, FilledShape):
   def __init__(self, el, n_indent=5, coords=None):
-    super(ModelicaRectangle, self).__init__("Rectangle",el,n_indent=n_indent,coords=coords)
+    GraphicItem.__init__(self, coords)
+    ModelicaElement.__init__(self, "Rectangle",el,n_indent=n_indent,coords=coords)
   def add_attributes(self, el):
     ModelicaElement.add_attributes(self, el)
     self.autoset_rotation_and_origin(el)
@@ -493,8 +490,9 @@ class ModelicaRectangle(ModelicaElement, GraphicItem, FilledShape):
 
 
 class ModelicaPath(ModelicaElement, GraphicItem):
-  def __init__(self, name, el, n_indent=3):
-    super(ModelicaPath, self).__init__(name, el, n_indent)
+  def __init__(self, name, el, n_indent=3, coords=None):
+    GraphicItem.__init__(self, coords)
+    ModelicaElement.__init__(self, name, el, n_indent, coords=coords)
   def add_attributes(self, el):
     ModelicaElement.add_attributes(self, el)
     self.autoset_rotation_and_origin(el)
@@ -578,7 +576,7 @@ class ModelicaPath(ModelicaElement, GraphicItem):
 
 class ModelicaPolygon(ModelicaPath, FilledShape):
   def __init__(self, el, n_indent = 5, coords=None):
-    super(ModelicaPolygon, self).__init__("Polygon", el, n_indent, coords=coords)
+    ModelicaPath.__init__(self, "Polygon", el, n_indent, coords=coords)
   def add_attributes(self, el):
     ModelicaPath.add_attributes(self, el)
     self.autoset_shape_values(el)
@@ -586,7 +584,7 @@ class ModelicaPolygon(ModelicaPath, FilledShape):
 class ModelicaLine(ModelicaPath, FilledShape):
   # line is no filled shape, but we need some of the methods
   def __init__(self, el, n_indent = 5, coords=None):
-    super(ModelicaLine, self).__init__("Line", el, n_indent, coords=coords)
+    ModelicaPath.__init__(self, "Line", el, n_indent, coords=coords)
   def add_attributes(self, el):
     ModelicaPath.add_attributes(self, el)
     self.autoset_thickness(el)
@@ -625,7 +623,8 @@ class ModelicaLine(ModelicaPath, FilledShape):
 
 class ModelicaText(ModelicaElement, GraphicItem, FilledShape):
   def __init__(self, el, n_indent = 5, coords=None):
-    super(ModelicaText, self).__init__("Text", el, n_indent, coords=coords)
+    GraphicItem.__init__(self, coords)
+    ModelicaElement.__init__(self, "Text", el, n_indent, coords=coords)
   def add_attributes(self, el):
     ModelicaElement.add_attributes(self, el)
     self.autoset_rotation_and_origin(el)
