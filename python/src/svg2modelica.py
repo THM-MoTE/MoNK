@@ -11,7 +11,11 @@ try:
 except:
   inkex_available = False
 
+def identity(x):
+  return x
+
 # note: this must be python 2.6, since inkscape ships with this version :/
+# TODO: normalize outer extent to {{-100, -100}, {100, 100}}
 
 INDENT = "    "
 
@@ -23,7 +27,7 @@ def to_f(s):
 def tn(el):
   return etree.QName(el.tag).localname
 
-def parse_svg(fname, modelname, strict=False):
+def parse_svg(fname, modelname, strict=False, normalize_extent=False):
   with open(fname, "rb") as f:
     parser = etree.XMLParser(encoding="utf-8", ns_clean=True)
     document = etree.parse(f, parser=parser)
@@ -32,7 +36,7 @@ def parse_svg(fname, modelname, strict=False):
         + "{0}{0}{2}\n" \
         + "{0});\n" \
         + "end {1};"
-  main_icon = ModelicaIcon(document)
+  main_icon = ModelicaIcon(document, normalize_extent=normalize_extent)
   print(res.format(INDENT, modelname, main_icon))
 
 def get_style_attribute(el, name):
@@ -47,7 +51,7 @@ def get_ns_attribute(el, ns, att):
   return el.get("{%s}%s" % (el.nsmap.get(ns), att))
 
 class ModelicaElement(object):
-  def __init__(self, name, el, n_indent=3):
+  def __init__(self, name, el, n_indent=3, coords=None):
     self.name = name
     self.data = {}
     self.elems = []
@@ -73,24 +77,47 @@ class ModelicaElement(object):
     return res
 
 class ModelicaIcon(ModelicaElement):
-  def __init__(self, doc, n_indent=3):
-    super(ModelicaIcon, self).__init__("Icon", doc, n_indent)
+  def __init__(self, doc, n_indent=3, normalize_extent=False, coords=None):
+    super(ModelicaIcon, self).__init__("Icon", doc, n_indent, coords=coords)
+    self.norm_extent = normalize_extent
   def add_attributes(self, doc):
-    self.add_element(ModelicaCoordinateSystem(doc.getroot(),n_indent=self.n_indent+1))
-    self.add_attribute("graphics",ModelicaGraphicsContainer(doc,n_indent=self.n_indent+1))
+    coords = ModelicaCoordinateSystem(doc.getroot(),n_indent=self.n_indent+1, normalize_extent=self.norm_extent)
+    self.add_element(coords)
+    self.add_attribute("graphics",ModelicaGraphicsContainer(doc,n_indent=self.n_indent+1, coords=coords))
 
 
 class ModelicaCoordinateSystem(ModelicaElement):
-  def __init__(self, svg, n_indent = 4):
+  def __init__(self, svg, n_indent = 4, normalize_extent=False):
     super(ModelicaCoordinateSystem, self).__init__(
       "coordinateSystem",svg,n_indent=n_indent
     )
     self.px2mm_factor_x = 1
     self.px2mm_factor_y = 1
+    self.norm_extent = normalize_extent
+  def normalize_x(self, x):
+    if self.norm_extent:
+      return (x - self.x_center) * self.scale
+    else:
+      return x
+  def normalize_y(self, y):
+    if self.norm_extent:
+      return (y - self.y_center) * self.scale
+    else:
+      return y
   def add_attributes(self, svg):
     self.add_attribute("preserveAspectRatio","false")
     self.autoset_extent(svg)
   def set_extent(self,x1,y1,x2,y2):
+    w = x2 - x1
+    h = y1 - y2
+    self.scale = min(200.0/w, 200.0/h)
+    self.x_center = (x1 + x2) / 2.0
+    self.y_center = (y1 + y2) / 2.0
+    if self.norm_extent:
+      x1 = -w / 2.0 * self.scale
+      x2 = +w / 2.0 * self.scale
+      y1 = -h / 2.0 * self.scale
+      y2 = +h / 2.0 * self.scale
     self.add_attribute("extent","{{%d,%d},{%d,%d}}" % (x1, y1, x2, y2))
   def find_extent(self, svg):
     w = to_f(svg.get("width"))
@@ -108,32 +135,33 @@ class ModelicaCoordinateSystem(ModelicaElement):
     self.set_extent(*ext)
 
 class ModelicaGraphicsContainer(object):
-  def __init__(self, doc, n_indent = 4):
+  def __init__(self, doc, n_indent = 4, coords=None):
     self.n_indent = n_indent
     self.elems = []
+    self.coords = coords
     self.add_descendants(doc.getroot())
   def to_modelica(self, el):
     tag = tn(el)
     if not isinstance(el, etree._Element):
       return None
     if tag == "rect":
-      return ModelicaRectangle(el, self.n_indent+1)
+      return ModelicaRectangle(el, self.n_indent+1, coords=self.coords)
     elif tag == "path":
       fill = get_style_attribute(el, "fill")
       if get_ns_attribute(el, "sodipodi", "type") == "arc":
-        return ModelicaEllipse(el, self.n_indent+1)
+        return ModelicaEllipse(el, self.n_indent+1, coords=self.coords)
       elif re.match(r".*[zZ]\s*$", el.get("d")):
-        return ModelicaPolygon(el, self.n_indent+1)
+        return ModelicaPolygon(el, self.n_indent+1, coords=self.coords)
       elif fill is not None and (fill != "none"):
-        return ModelicaPolygon(el, self.n_indent+1)
+        return ModelicaPolygon(el, self.n_indent+1, coords=self.coords)
       else:
-        return ModelicaLine(el, self.n_indent+1)
+        return ModelicaLine(el, self.n_indent+1, coords=self.coords)
     elif tag == "circle":
-      return ModelicaEllipse(el, self.n_indent+1)
+      return ModelicaEllipse(el, self.n_indent+1, coords=self.coords)
     elif tag == "ellipse":
-      return ModelicaEllipse(el, self.n_indent+1)
+      return ModelicaEllipse(el, self.n_indent+1, coords=self.coords)
     elif tag == "text":
-      return ModelicaText(el, self.n_indent+1)
+      return ModelicaText(el, self.n_indent+1, coords=self.coords)
     else:
       return None # TODO this is where we have to decide if we want errors
     # TODO (nice to have) support bitmap images
@@ -183,13 +211,20 @@ class Smooth:
 
 class GraphicItem(object):
   def __init__(*args, **kwargs):
-    # empty init method required to allow calls to super() in
+    # *args and **kwargs required to allow calls to super() in
     # classes that use this class as one of multiple base classes
-    pass
+    self.coords = kwargs["coords"]
   def x_coord(self, x):
-    return x
+    if self.coords is not None:
+      return self.coords.normalize_x(x)
+    else:
+      return x
   def y_coord(self, y):
-    return -y
+    res = -y
+    if self.coords is not None:
+      return self.coords.normalize_y(res)
+    else:
+      return res
   def set_origin(self, x, y):
     self.add_attribute("origin","{%d,%d}" % (x, y))
   def set_rotation(self, deg):
@@ -381,8 +416,8 @@ class FilledShape(object):
     self.autoset_line_thickness(el)
 
 class ModelicaEllipse(ModelicaElement, GraphicItem, FilledShape):
-  def __init__(self, el, n_indent = 5):
-    super(ModelicaEllipse, self).__init__("Ellipse", el, n_indent=n_indent)
+  def __init__(self, el, n_indent = 5, coords=None):
+    super(ModelicaEllipse, self).__init__("Ellipse", el, n_indent, coords=coords)
   def add_attributes (self,  el):
     ModelicaElement.add_attributes(self, el)
     self.autoset_rotation_and_origin(el)
@@ -426,8 +461,8 @@ class ModelicaEllipse(ModelicaElement, GraphicItem, FilledShape):
     self.set_extent(*ext)
 
 class ModelicaRectangle(ModelicaElement, GraphicItem, FilledShape):
-  def __init__(self, el, n_indent=5):
-    super(ModelicaRectangle, self).__init__("Rectangle",el,n_indent=n_indent)
+  def __init__(self, el, n_indent=5, coords=None):
+    super(ModelicaRectangle, self).__init__("Rectangle",el,n_indent=n_indent,coords=coords)
   def add_attributes(self, el):
     ModelicaElement.add_attributes(self, el)
     self.autoset_rotation_and_origin(el)
@@ -540,16 +575,16 @@ class ModelicaPath(ModelicaElement, GraphicItem):
       self.add_attribute("smooth", "Smooth.Bezier")
 
 class ModelicaPolygon(ModelicaPath, FilledShape):
-  def __init__(self, el, n_indent = 5):
-    super(ModelicaPolygon, self).__init__("Polygon", el, n_indent)
+  def __init__(self, el, n_indent = 5, coords=None):
+    super(ModelicaPolygon, self).__init__("Polygon", el, n_indent, coords=coords)
   def add_attributes(self, el):
     ModelicaPath.add_attributes(self, el)
     self.autoset_shape_values(el)
 
 class ModelicaLine(ModelicaPath, FilledShape):
   # line is no filled shape, but we need some of the methods
-  def __init__(self, el, n_indent = 5):
-    super(ModelicaLine, self).__init__("Line", el, n_indent)
+  def __init__(self, el, n_indent = 5, coords=None):
+    super(ModelicaLine, self).__init__("Line", el, n_indent, coords=coords)
   def add_attributes(self, el):
     ModelicaPath.add_attributes(self, el)
     self.autoset_thickness(el)
@@ -587,8 +622,8 @@ class ModelicaLine(ModelicaPath, FilledShape):
     self.add_attribute("arrowSize", size)
 
 class ModelicaText(ModelicaElement, GraphicItem, FilledShape):
-  def __init__(self, el, n_indent = 5):
-    super(ModelicaText, self).__init__("Text", el, n_indent)
+  def __init__(self, el, n_indent = 5, coords=None):
+    super(ModelicaText, self).__init__("Text", el, n_indent, coords=coords)
   def add_attributes(self, el):
     ModelicaElement.add_attributes(self, el)
     self.autoset_rotation_and_origin(el)
@@ -725,17 +760,20 @@ class ModelicaText(ModelicaElement, GraphicItem, FilledShape):
 
 if __name__ == '__main__':
   try:
-    opts, args = getopt.getopt(sys.argv[1:], "m:s:", ["modelname=", "strict="])
+    opts, args = getopt.getopt(sys.argv[1:], "m:s:n", ["modelname=", "strict=", "normalize_extent="])
   except getopt.GetoptError as err:
     print(str(err))
-    print("usage: python svg2modelica.py [-m modelname] [-s true/false] filename")
+    print("usage: python svg2modelica.py [-m modelname] [-s true/false] [-n true/false] filename")
     exit(1)
   strict = False
   modelname = "DummyModel"
+  norm_extent = False
   for k, v in opts:
     if k in ("-s", "--strict"):
       strict = bool(v)
     elif k in ("-m", "--modelname"):
       modelname = v
+    elif k in ("-n", "--normalize_extent"):
+      norm_extent = bool(v)
   fname = args[0]
-  parse_svg(fname, modelname, strict=strict)
+  parse_svg(fname, modelname, strict=strict, normalize_extent=norm_extent)
