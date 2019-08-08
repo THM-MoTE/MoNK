@@ -14,7 +14,7 @@
    viewBox="0 0 744.09448819 1052.3622047"
    id="svg4142"
    version="1.1"
-   inkscape:version="0.91 r13725"
+   inkscape:version="0.92.4 5da689c313, 2019-01-14"
    sodipodi:docname="all_primitives.svg">
   <defs
      id="defs4144" />
@@ -25,16 +25,16 @@
      borderopacity="1.0"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="0.7"
-     inkscape:cx="255.45029"
-     inkscape:cy="536.72495"
+     inkscape:zoom="0.49497475"
+     inkscape:cx="-38.884578"
+     inkscape:cy="553.1072"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
      showgrid="false"
-     inkscape:window-width="1920"
-     inkscape:window-height="1178"
-     inkscape:window-x="2792"
-     inkscape:window-y="712"
+     inkscape:window-width="1664"
+     inkscape:window-height="907"
+     inkscape:window-x="1248"
+     inkscape:window-y="1163"
      inkscape:window-maximized="1" />
   <metadata
      id="metadata4147">
@@ -44,7 +44,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title></dc:title>
+        <dc:title />
       </cc:Work>
     </rdf:RDF>
   </metadata>
@@ -76,8 +76,7 @@
        style="font-style:normal;font-weight:normal;font-size:40px;line-height:125%;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
        x="12.857143"
        y="453.79077"
-       id="text4696"
-       sodipodi:linespacing="125%"><tspan
+       id="text4696"><tspan
          sodipodi:role="line"
          id="tspan4698"
          x="12.857143"
@@ -121,5 +120,13 @@
        sodipodi:start="1.7453293"
        sodipodi:end="0"
        d="m 413.06278,649.91358 a 72.85714,67.14286 0 0 1 -59.71299,-73.91762 72.85714,67.14286 0 0 1 76.60077,-59.23445 72.85714,67.14286 0 0 1 68.62087,67.02926 l -72.85714,0 z" />
+    <rect
+       style="opacity:1;fill:#000000;fill-opacity:1;stroke-width:7.08656263;stroke-linecap:butt;stroke-miterlimit:4;stroke-dasharray:none"
+       id="rect828"
+       width="361.76093"
+       height="85.23159"
+       x="356.44162"
+       y="739.82025"
+       transform="rotate(22.442528)" />
   </g>
 </svg>
