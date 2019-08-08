@@ -288,7 +288,7 @@ class GraphicItem(object):
         [0, 0, 1]
       ])
     elif m_rot is not None:
-      g = [float(x) for x in m_rot.groups()]
+      g = [float(x) if x is not None else x for x in m_rot.groups()]
       if g[1] is not None:
         t = self.parse_transform("translate({1}, {2})".format(g[1], g[2]))
         r = self.parse_transform("rotate({1})".format(g[0]))
