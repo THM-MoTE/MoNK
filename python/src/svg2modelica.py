@@ -428,8 +428,13 @@ class ModelicaEllipse(ModelicaElement, GraphicItem, FilledShape):
   def autoset_angles (self, el):
     if tn(el) != "path":
       return
-    startAngle = float(get_ns_attribute(el, "sodipodi", "start")) / np.pi * 180.0
-    endAngle = float(get_ns_attribute(el, "sodipodi", "end")) / np.pi * 180.0
+    start = float(get_ns_attribute(el, "sodipodi", "start"))
+    end = float(get_ns_attribute(el, "sodipodi", "end"))
+    # NOTE: inkscape has clockwise angles, Modelica angles are counter-clockwise
+    startAngle = 360 - end / np.pi * 180.0
+    endAngle = 360 - start / np.pi * 180.0
+    if startAngle > endAngle:
+      startAngle -= 360
     self.set_angles(startAngle, endAngle)
   def set_extent (self,  x1, y1, x2, y2):
     self.add_attribute("extent","{{%d,%d},{%d,%d}}" % (x1, y1, x2, y2))
