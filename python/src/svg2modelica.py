@@ -659,7 +659,7 @@ class ModelicaText(ModelicaElement, GraphicItem, FilledShape):
     if tn(el) == "tspan":
       text = el.text
     else:
-      text = "\n".join([c.text for c in el.iterchildren()])
+      text = "\n".join([etree.tostring(c, method="text").decode("UTF-8") for c in el.iterchildren()])
     self.set_text_string(text)
   def get_font(self, el):
     if not isinstance(el, etree._Element):
@@ -750,7 +750,7 @@ class ModelicaText(ModelicaElement, GraphicItem, FilledShape):
   def set_extent(self, x1, y1, x2, y2):
     self.add_attribute("extent","{{%d,%d},{%d,%d}}" % (x1, y1, x2, y2))
   def set_text_string(self, s):
-    self.add_attribute("textString", repr(s))
+    self.add_attribute("textString", '"'+repr(s)[1:-1]+'"')
   def set_font(self, fontName, fontSize, style):
     styles = { 
       'i' : "TextStyle.Italic", 'b' : "TextStyle.Bold",
