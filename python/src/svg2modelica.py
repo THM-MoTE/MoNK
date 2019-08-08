@@ -789,10 +789,10 @@ if __name__ == '__main__':
   norm_extent = False
   for k, v in opts:
     if k in ("-s", "--strict"):
-      strict = bool(v)
+      strict = v in ["true", "True"]
     elif k in ("-m", "--modelname"):
       modelname = v
     elif k in ("-n", "--normalize_extent"):
-      norm_extent = bool(v)
+      norm_extent = v in ["true", "True"]
   fname = args[0]
   parse_svg(fname, modelname, strict=strict, normalize_extent=norm_extent)
