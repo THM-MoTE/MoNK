@@ -50,6 +50,14 @@ def get_style_attribute(el, name):
 def get_ns_attribute(el, ns, att):
   return el.get("{%s}%s" % (el.nsmap.get(ns), att))
 
+def transform_units(value, from_unit, to_unit):
+  # modelica coordinates are assumed to be mm, so we set 1px = 1mm
+  to_mm_factors = {
+    "pt" : 25.4/72, "px" : 1, "pc" : 12, "mm" : 1,
+    "cm" : 10, "in" : 25.4
+  }
+  return value * to_mm_factors[from_unit] / to_mm_factors[to_unit]
+
 class ModelicaElement(object):
   def __init__(self, name, el, n_indent=3, coords=None):
     self.name = name
@@ -687,13 +695,9 @@ class ModelicaText(ModelicaElement, GraphicItem, FilledShape):
     if exp_match is None:
       raise ValueError("cannot understand size {0}".format(size_str))
     # modelica coordinates are assumed to be in mm, so we set 1px = 1mm
-    factors = { 
-      "pt" : 25.4/72, "px" : 1, "pc" : 12, "mm" : 1,
-      "cm" : 10, "in" : 25.4
-    }
     number = exp_match.group(1)
     unit = exp_match.group(2)
-    return float(number) * factors[unit] / factors["pt"]
+    return transform_units(float(number), unit, "pt")
   def autoset_font(self, el):
     outerName, outerSize, outerStyle = self.get_font(el)
     innerName, innerSize, innerStyle = self.get_font(el.getchildren()[0])
