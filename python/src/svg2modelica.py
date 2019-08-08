@@ -497,7 +497,7 @@ class ModelicaPath(ModelicaElement, GraphicItem):
     ModelicaElement.add_attributes(self, el)
     self.autoset_rotation_and_origin(el)
     self.autoset_points_and_smooth(el)
-  def autoset_points_and_smooth(self,(el)):
+  def autoset_points_and_smooth(self, el):
     d = el.get("d")
     points = self.parse_path(d)
     self.set_points(points)
