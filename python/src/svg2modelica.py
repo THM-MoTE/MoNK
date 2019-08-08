@@ -115,6 +115,11 @@ class ModelicaCoordinateSystem(ModelicaElement):
       return (y - self.y_center) * self.scale
     else:
       return y
+  def normalize_delta(self, delta):
+    if self.norm_extent:
+      return delta * self.scale
+    else:
+      return delta
   def add_attributes(self, svg):
     self.add_attribute("preserveAspectRatio","false")
     self.autoset_extent(svg)
@@ -647,6 +652,7 @@ class ModelicaText(ModelicaElement, GraphicItem, FilledShape):
   def __init__(self, el, n_indent = 5, coords=None):
     GraphicItem.__init__(self, coords)
     ModelicaElement.__init__(self, "Text", el, n_indent, coords=coords)
+    self.font_size_mm = None
   def add_attributes(self, el):
     ModelicaElement.add_attributes(self, el)
     self.autoset_rotation_and_origin(el)
@@ -711,31 +717,29 @@ class ModelicaText(ModelicaElement, GraphicItem, FilledShape):
     y = float(el.get("y"))
     # TODO can we do better for the extent? probably not without rendering the
     # text element
-    # get the calculated font size from our data and transform it to mm
-    font_size = float(self.data["fontSize"]) * 25.4/72
     # determine text width and height in number of characters
     text = eval(self.data["textString"])
     text_w = max([len(s) for s in text.split("\n")])
     text_h = len(text.split("\n"))
     # guess how much pixels (or mm) that would be based on font_size
-    w = text_w * font_size * 0.5
-    h = text_h * font_size + max(0, text_h-1) * font_size * 0.2
+    w = text_w * self.font_size_mm * 0.5
+    h = text_h * self.font_size_mm + max(0, text_h-1) * self.font_size_mm * 0.2
     ha = self.data["horizontalAlignment"]
     if ha == "TextAlignment.Left":
       x1 = x
-      y1 = y - 0.8 * font_size
+      y1 = y - 0.8 * self.font_size_mm
       x2 = x + w
-      y2 = y + h - 0.8 * font_size
+      y2 = y + h - 0.8 * self.font_size_mm
     elif ha == "TextAlignment.Right":
       x1 = x - w
-      y1 = y - 0.8 * font_size
+      y1 = y - 0.8 * self.font_size_mm
       x2 = x
-      y2 = y + h - 0.8 * font_size
+      y2 = y + h - 0.8 * self.font_size_mm
     elif ha == "TextAlignment.Center":
       x1 = x - w/2
-      y1 = y - w/2 + 0.2 * font_size
+      y1 = y - w/2 + 0.2 * self.font_size_mm
       x2 = x + w/2
-      y2 = y + w/2 + 0.2 * font_size
+      y2 = y + w/2 + 0.2 * self.font_size_mm
     self.set_extent(
       self.x_coord(x1), self.y_coord(y1),
       self.x_coord(x2), self.y_coord(y2)
@@ -764,6 +768,10 @@ class ModelicaText(ModelicaElement, GraphicItem, FilledShape):
     if len(style) > 0:
       self.add_attribute("textStyle", "{%s}" % style_string)
     self.add_attribute("fontName", fontName)
+    # save unnormalized font size to calculate extent later
+    self.font_size_mm = transform_units(fontSize, "pt", "mm")
+    if self.coords is not None:
+      fontSize = self.coords.normalize_delta(fontSize)
     self.add_attribute("fontSize", fontSize)
   def set_horizontal_alignment(self, align):
     css_align_to_modelica = { 
