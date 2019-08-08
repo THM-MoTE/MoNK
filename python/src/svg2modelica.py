@@ -112,7 +112,7 @@ class ModelicaCoordinateSystem(ModelicaElement):
     self.autoset_extent(svg)
   def set_extent(self,x1,y1,x2,y2):
     w = x2 - x1
-    h = y1 - y2
+    h = y2 - y1
     self.scale = min(200.0/w, 200.0/h)
     self.x_center = (x1 + x2) / 2.0
     self.y_center = (y1 + y2) / 2.0
