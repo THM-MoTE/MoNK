@@ -215,18 +215,27 @@ class Smooth:
 class GraphicItem(object):
   def __init__(self, coords):
     self.coords = coords
+    self.offset_x = None
+    self.offset_y = None
   def x_coord(self, x):
+    res = x
     if self.coords is not None:
-      return self.coords.normalize_x(x)
-    else:
-      return x
+      res = self.coords.normalize_x(res)
+    res += self.offset_x
+    return res
   def y_coord(self, y):
     res = -y
     if self.coords is not None:
-      return self.coords.normalize_y(res)
-    else:
-      return res
+      res = self.coords.normalize_y(res)
+    res += self.offset_y
+    return res
   def set_origin(self, x, y):
+    y = -y
+    if self.coords is not None:
+      x = self.coords.normalize_x(x)
+      y = self.coords.normalize_y(y)
+    self.offset_x = -x
+    self.offset_y = -y
     self.add_attribute("origin","{%d,%d}" % (x, y))
   def set_rotation(self, deg):
     self.add_attribute("rotation",deg)
