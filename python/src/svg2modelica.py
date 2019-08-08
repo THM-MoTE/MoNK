@@ -107,11 +107,6 @@ class ModelicaCoordinateSystem(ModelicaElement):
       return (y - self.y_center) * self.scale
     else:
       return y
-  def normalize_delta(self, delta):
-    if self.norm_extent:
-      return delta * self.scale
-    else:
-      return delta
   def add_attributes(self, svg):
     self.add_attribute("preserveAspectRatio","false")
     self.autoset_extent(svg)
@@ -329,9 +324,6 @@ class GraphicItem(object):
   def autoset_rotation_and_origin(self, el):
     mat = self.get_matrix(el)
     tx, ty, alpha = self.decompose_matrix(mat)
-    if self.coords is not None:
-      tx = self.coords.normalize_delta(tx)
-      ty = self.coords.normalize_delta(ty)
     self.set_origin(tx,ty)
     self.set_rotation(alpha/np.pi*180)
 
