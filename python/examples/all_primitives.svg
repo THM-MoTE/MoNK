@@ -121,12 +121,12 @@
        sodipodi:end="0"
        d="m 413.06278,649.91358 a 72.85714,67.14286 0 0 1 -59.71299,-73.91762 72.85714,67.14286 0 0 1 76.60077,-59.23445 72.85714,67.14286 0 0 1 68.62087,67.02926 l -72.85714,0 z" />
     <rect
-       style="opacity:1;fill:#000000;fill-opacity:1;stroke-width:7.08656263;stroke-linecap:butt;stroke-miterlimit:4;stroke-dasharray:none"
+       style="opacity:1;fill:#000000;fill-opacity:1;stroke:none;stroke-width:7.08656263;stroke-linecap:butt;stroke-miterlimit:4;stroke-dasharray:none"
        id="rect828"
        width="361.76093"
        height="85.23159"
-       x="356.44162"
-       y="739.82025"
+       x="493.25397"
+       y="644.37585"
        transform="rotate(22.442528)" />
   </g>
 </svg>
