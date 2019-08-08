@@ -399,6 +399,8 @@ class FilledShape(object):
   def autoset_fill_pattern (self, el):
     self.add_attribute("fillPattern",self.find_fill_pattern(el))
   def set_line_thickness (self, x):
+    if self.coords is not None:
+      x = self.coords.normalize_delta(x)
     self.add_attribute("lineThickness",x)
   def find_line_thickness (self, el):
     att = get_style_attribute(el,"stroke-width")
