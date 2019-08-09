@@ -23,6 +23,17 @@ re_to_f = re.compile(r"(\-?\d+(?:\.\d+)?(?:e\-?\d+)?)[^\d]*")
 def to_f(s):
   return float(re.match(re_to_f, s).group(1))
 
+def to_s(*args, decimal_place=2):
+  res = []
+  for f in args:
+    s = ("%."+str(decimal_place)+"f") % f
+    if (s[-decimal_place:] == "0"*decimal_place):
+      s = s[:-decimal_place-1]
+    res.append(s)
+  if len(res) == 1:
+    return res[0]
+  return tuple(res)
+
 def tn(el):
   return etree.QName(el.tag).localname
 
@@ -133,7 +144,7 @@ class ModelicaCoordinateSystem(ModelicaElement):
       x2 = +w / 2.0 * self.scale
       y1 = -h / 2.0 * self.scale
       y2 = +h / 2.0 * self.scale
-    self.add_attribute("extent","{{%d,%d},{%d,%d}}" % (x1, y1, x2, y2))
+    self.add_attribute("extent","{{%s,%s},{%s,%s}}" % to_s(x1, y1, x2, y2))
   def find_extent(self, svg):
     w = to_f(svg.get("width"))
     h = to_f(svg.get("height"))
@@ -252,9 +263,9 @@ class GraphicItem(object):
       # every translation should be applied to all points
       self.offset_x = 0
       self.offset_y = 0
-    self.add_attribute("origin","{%d,%d}" % (x, y))
+    self.add_attribute("origin","{%s,%s}" % to_s(x, y))
   def set_rotation(self, deg):
-    self.add_attribute("rotation",deg)
+    self.add_attribute("rotation",to_s(deg))
   def get_matrix(self, el):
     # get the transformation matrix for this element
     if el is None:
@@ -354,7 +365,7 @@ class GraphicItem(object):
 
 class FilledShape(object):
   def set_line_color(self, r, g, b):
-    self.add_attribute("lineColor","{%d,%d,%d}" % (r, g, b))
+    self.add_attribute("lineColor","{%d,%d,%d}" % (round(r), round(g), round(b)))
   def autoset_line_color(self, el):
     lc = self.find_line_color(el)
     if lc is not None:
@@ -372,7 +383,7 @@ class FilledShape(object):
     #NOT SUPPORTED: none, currentColor, inherit, url(), css color names
     return None
   def set_fill_color(self, r, g, b):
-    self.add_attribute("fillColor","{%d,%d,%d}" % (r, g, b))
+    self.add_attribute("fillColor","{%d,%d,%d}" % (round(r), round(g), round(b)))
   def find_fill_color (self, el):
     att = get_style_attribute(el,"fill")
     return self.attribute_value_to_color(att)
@@ -404,7 +415,7 @@ class FilledShape(object):
   def set_line_thickness (self, x):
     if self.coords is not None:
       x = self.coords.normalize_delta(x)
-    self.add_attribute("lineThickness",x)
+    self.add_attribute("lineThickness",to_s(x))
   def find_line_thickness (self, el):
     att = get_style_attribute(el,"stroke-width")
     if att is None:
@@ -464,7 +475,7 @@ class ModelicaEllipse(ModelicaElement, GraphicItem, FilledShape):
       startAngle -= 360
     self.set_angles(startAngle, endAngle)
   def set_extent (self,  x1, y1, x2, y2):
-    self.add_attribute("extent","{{%d,%d},{%d,%d}}" % (x1, y1, x2, y2))
+    self.add_attribute("extent","{{%s,%s},{%s,%s}}" % to_s(x1, y1, x2, y2))
   def find_extent (self,  el):
     tag = tn(el)
     if tag == "circle":
@@ -502,7 +513,7 @@ class ModelicaRectangle(ModelicaElement, GraphicItem, FilledShape):
     #TODO corner radius
     #UNSUPPORTED ATTRIBUTES: borderPattern
   def set_extent(self, x1, y1, x2, y2):
-    self.add_attribute("extent","{{%d,%d},{%d,%d}}" % (x1, y1, x2, y2))
+    self.add_attribute("extent","{{%s,%s},{%s,%s}}" % to_s(x1, y1, x2, y2))
   def find_extent(self, el):
     x = float(el.get("x"))
     y = float(el.get("y"))
@@ -616,7 +627,7 @@ class ModelicaPath(ModelicaElement, GraphicItem):
     return points
   def set_points(self, points):
     corrected = [[self.x_coord(x), self.y_coord(y)] for x, y in points]
-    formatted = ["{%d, %d}" % (x, y) for x, y in corrected]
+    formatted = ["{%s, %s}" % to_s(x, y) for x, y in corrected]
     self.add_attribute("points","{%s}" % ", ".join(formatted))
   def set_smooth(self, isSmooth):
     if isSmooth:
@@ -777,7 +788,7 @@ class ModelicaText(ModelicaElement, GraphicItem, FilledShape):
       alignInner = anchor_to_align[alignInner]
     self.set_horizontal_alignment(alignInner or alignOuter or "left")
   def set_extent(self, x1, y1, x2, y2):
-    self.add_attribute("extent","{{%d,%d},{%d,%d}}" % (x1, y1, x2, y2))
+    self.add_attribute("extent","{{%s,%s},{%s,%s}}" % to_s(x1, y1, x2, y2))
   def set_text_string(self, s):
     self.add_attribute("textString", '"'+repr(s)[1:-1]+'"')
   def set_font(self, fontName, fontSize, style):
