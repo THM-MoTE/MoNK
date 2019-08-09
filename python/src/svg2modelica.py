@@ -577,6 +577,22 @@ class ModelicaPath(ModelicaElement, GraphicItem):
         mode = "rel"
         width = 2
         i += 3
+      elif tokens[i] == 'H': # horizontal line to absolute
+        x = tokens[i+1]
+        points.append([x, y])
+        i += 2
+      elif tokens[i] == 'h': # horizontal line to relative
+        x += tokens[i+1]
+        points.append([x, y])
+        i += 2
+      elif tokens[i] == 'V': # vertical line to absolute
+        y = tokens[i+1]
+        points.append([x, y])
+        i += 2
+      elif tokens[i] == 'v': # vertical line to relative
+        y += tokens[i+1]
+        points.append([x, y])
+        i += 2
       elif tokens[i] in ['z','Z']:
         i += 1
       elif isinstance(tokens[i], float):
