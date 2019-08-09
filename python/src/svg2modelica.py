@@ -15,7 +15,6 @@ def identity(x):
   return x
 
 # note: this must be python 2.6, since inkscape ships with this version :/
-# TODO: normalize outer extent to {{-100, -100}, {100, 100}}
 
 INDENT = "    "
 
