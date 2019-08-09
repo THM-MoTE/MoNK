@@ -19,7 +19,7 @@ def identity(x):
 
 INDENT = "    "
 
-re_to_f = re.compile(r"(\d+)[^\d]*")
+re_to_f = re.compile(r"(\d+\.?\d*)[^\d]*")
 
 def to_f(s):
   return float(re.match(re_to_f, s).group(1))
