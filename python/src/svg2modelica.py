@@ -791,7 +791,12 @@ class ModelicaText(ModelicaElement, GraphicItem, FilledShape):
   def set_extent(self, x1, y1, x2, y2):
     self.add_attribute("extent","{{%s,%s},{%s,%s}}" % to_s(x1, y1, x2, y2))
   def set_text_string(self, s):
-    self.add_attribute("textString", '"'+repr(s)[1:-1]+'"')
+    rs = repr(s)
+    if rs[0] not in ["'", '"']:
+      rs = rs[2:-1]
+    else:
+      rs = rs[1:-1]
+    self.add_attribute("textString", '"'+rs+'"')
   def set_font(self, fontName, fontSize, style):
     styles = { 
       'i' : "TextStyle.Italic", 'b' : "TextStyle.Bold",
