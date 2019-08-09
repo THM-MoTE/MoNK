@@ -18,7 +18,7 @@ def identity(x):
 
 INDENT = "    "
 
-re_to_f = re.compile(r"(\d+\.?\d*)[^\d]*")
+re_to_f = re.compile(r"(\-?\d+(?:\.\d+)?(?:e\-?\d+)?)[^\d]*")
 
 def to_f(s):
   return float(re.match(re_to_f, s).group(1))
@@ -536,7 +536,7 @@ class ModelicaPath(ModelicaElement, GraphicItem):
     smoothOps = frozenset("csqtaCSQTA")
     self.set_smooth(len(frozenset(d) & smoothOps) > 0)
   def parse_path(self, d):
-    exp = re.compile(r"([a-zA-Z]|(?:-?\d+\.?\d*))[\s,]*")
+    exp = re.compile(r"([a-zA-Z]|(?:-?\d+(?:\.\d+)?(?:e\-?\d+)?))[\s,]*")
     def float_or_self(x):
       try:
         return float(x)
