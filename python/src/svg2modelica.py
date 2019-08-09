@@ -53,8 +53,8 @@ def get_ns_attribute(el, ns, att):
 def transform_units(value, from_unit, to_unit):
   # modelica coordinates are assumed to be mm, so we set 1px = 1mm
   to_mm_factors = {
-    "pt" : 25.4/72, "px" : 1, "pc" : 12, "mm" : 1,
-    "cm" : 10, "in" : 25.4
+    "pt" : 25.4/72, "px" : 1.0, "pc" : 12.0, "mm" : 1.0,
+    "cm" : 10.0, "in" : 25.4
   }
   return value * to_mm_factors[from_unit] / to_mm_factors[to_unit]
 
