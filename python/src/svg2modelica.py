@@ -243,12 +243,16 @@ class GraphicItem(object):
     res += self.offset_y
     return res
   def set_origin(self, x, y):
-    y = -y
     if self.coords is not None:
       x = self.coords.normalize_x(x)
       y = self.coords.normalize_y(y)
-    self.offset_x = -x
-    self.offset_y = -y
+      # remove translational part that comes just from different origin
+      self.offset_x = -self.coords.normalize_x(0)
+      self.offset_y = -self.coords.normalize_y(0)
+    else:
+      # every translation should be applied to all points
+      self.offset_x = 0
+      self.offset_y = 0
     self.add_attribute("origin","{%d,%d}" % (x, y))
   def set_rotation(self, deg):
     self.add_attribute("rotation",deg)
