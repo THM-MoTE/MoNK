@@ -810,7 +810,7 @@ class ModelicaText(ModelicaElement, GraphicItem, FilledShape):
     self.font_size_mm = transform_units(fontSize, "pt", "mm")
     if self.coords is not None:
       fontSize = self.coords.normalize_delta(fontSize)
-    self.add_attribute("fontSize", fontSize)
+    self.add_attribute("fontSize", to_s(fontSize))
   def set_horizontal_alignment(self, align):
     css_align_to_modelica = { 
       "left" : "TextAlignment.Left", "right" : "TextAlignment.Right",
