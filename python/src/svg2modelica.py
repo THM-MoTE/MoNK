@@ -23,7 +23,8 @@ re_to_f = re.compile(r"(\-?\d+(?:\.\d+)?(?:e\-?\d+)?)[^\d]*")
 def to_f(s):
   return float(re.match(re_to_f, s).group(1))
 
-def to_s(*args, decimal_place=2):
+def to_s(*args, **kwargs):
+  decimal_place = kwargs.get("decimal_place", 2)
   res = []
   for f in args:
     s = ("%."+str(decimal_place)+"f") % f
