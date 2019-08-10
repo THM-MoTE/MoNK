@@ -677,7 +677,9 @@ class ModelicaLine(ModelicaPath, FilledShape):
     if arrow_s is not None or arrow_e is not None:
       self.set_arrow(arrow_s, arrow_e, self.find_line_thickness(el))
   def set_thickness(self, thick):
-    self.add_attribute("thickness", thick)
+    if self.coords is not None:
+      thick = self.coords.normalize_delta(thick)
+    self.add_attribute("thickness", to_s(thick))
   def set_pattern(self, pattern):
     self.add_attribute("pattern", pattern)
   def set_color(self, color):
