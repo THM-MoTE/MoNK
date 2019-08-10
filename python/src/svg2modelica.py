@@ -373,7 +373,7 @@ class FilledShape(object):
       self.add_attribute("lineColor", lc)
   def find_line_color(self, el):
     att = get_style_attribute(el, "stroke")
-    self.attribute_value_to_color(att)
+    return self.attribute_value_to_color(att)
   def attribute_value_to_color(self, att):
     if att is None:
       return None
