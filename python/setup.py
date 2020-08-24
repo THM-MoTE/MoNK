@@ -1,4 +1,7 @@
 # -*- coding: utf-8 -*-
+from __future__ import (absolute_import, division,
+                        print_function)
+from builtins import *
 
 import sys
 import os
@@ -108,7 +111,7 @@ class InstallToExtensionDir(install):
             shutil.copyfile(src, dst)
 
 
-version = '0.1.0'
+version = '0.2.0'
 setup(
     name='svg2modelica',
     package_dir={'': 'src'},
