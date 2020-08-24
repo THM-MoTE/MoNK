@@ -15,6 +15,7 @@ data_files = [
     for x in glob.glob("res/**")
 ]
 
+
 def determine_dir(name, filename, defaults={}):
     if not os.path.exists(".paths"):
         os.mkdir(".paths")
@@ -27,11 +28,13 @@ def determine_dir(name, filename, defaults={}):
     dirname = input(msg.format(name, default))
     if len(dirname) == 0:
         dirname = default
-    msg = "Your path configuration will be saved in the file {} for further use."
+    msg = "Your path configuration will be saved in the file {} " \
+        + "for further use."
     print(msg.format(filepath))
     with io.open(filepath, 'w', encoding="UTF-8") as f:
         f.write(dirname)
     return dirname
+
 
 def determine_ext():
     return determine_dir("inkscape extension directory", "ext.txt", defaults={
@@ -40,21 +43,31 @@ def determine_ext():
         "linux": r'/usr/share/inkscape/extensions/',
     })
 
+
 def determine_user_ext():
-    return determine_dir("inkscape user extension directory", "user_ext.txt", defaults={
-        "win32": os.path.expanduser(r'~\AppData\Roaming\inkscape\extensions'),
-        "cygwin": os.path.expanduser(r'~\AppData\Roaming\inkscape\extensions'),
-        "linux": os.path.expanduser(r'~/.config/inkscape/extensions/'),
-    })
+    return determine_dir(
+        "inkscape user extension directory", "user_ext.txt", defaults={
+            "win32": os.path.expanduser(
+                r'~\AppData\Roaming\inkscape\extensions'
+            ),
+            "cygwin": os.path.expanduser(
+                r'~\AppData\Roaming\inkscape\extensions'
+            ),
+            "linux": os.path.expanduser(
+                r'~/.config/inkscape/extensions/'
+            ),
+        }
+    )
+
 
 class BdistInkscape(Command):
     user_options = []
 
     def initialize_options(self):
-            pass
+        pass
 
     def finalize_options(self):
-            pass
+        pass
 
     def run(self):
         outfile = "{}-{}".format(
@@ -72,11 +85,12 @@ class BdistInkscape(Command):
             for f in glob.glob("res/**")
         ])
         with tarfile.open("dist/{}.tar.gz".format(outfile), "w:gz") as tf:
-            for f,aname in files:
+            for f, aname in files:
                 tf.add(f, arcname=aname)
         with zipfile.ZipFile("dist/{}.zip".format(outfile), "w") as zf:
-            for f,aname in files:
+            for f, aname in files:
                 zf.write(f, arcname=aname)
+
 
 class InstallToExtensionDir(install):
     def run(self):
@@ -92,6 +106,7 @@ class InstallToExtensionDir(install):
             dst = os.path.join(determine_user_ext(), os.path.relpath(f, "res"))
             print("copying %s -> %s" % (src, dst))
             shutil.copyfile(src, dst)
+
 
 version = '0.1.0'
 setup(
@@ -125,8 +140,8 @@ setup(
         'setuptools'
     ],
     cmdclass={
-        'install' : InstallToExtensionDir,
-        'bdist_ink' : BdistInkscape
+        'install': InstallToExtensionDir,
+        'bdist_ink': BdistInkscape
     },
     data_files=data_files,
     include_package_data=True
