@@ -8,7 +8,7 @@ inkex_available = True
 
 try:
     import inkex
-except _:
+except ImportError:
     inkex_available = False
 
 
@@ -672,7 +672,7 @@ class ModelicaPath(ModelicaElement, GraphicItem):
         def float_or_self(x):
             try:
                 return float(x)
-            except _:
+            except ValueError:
                 return x
         tokens = [float_or_self(x) for x in exp.findall(d)]
         points = []
