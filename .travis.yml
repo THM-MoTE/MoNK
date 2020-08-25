@@ -1,4 +1,9 @@
-dist: xenial
+jobs:
+  include:
+    - os: linux
+      dist: xenial
+    - os: windows
+
 language: python
 python:
     - 2.7
