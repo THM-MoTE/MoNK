@@ -72,7 +72,7 @@ model DummyModel
                     rotation= 0
                 ),
                 Ellipse(
-                    endAngle= 259.9999972494777,
+                    endAngle= 260,
                     extent= {{352.86,-516.65},{498.57,-650.93}},
                     fillColor= {151,0,167},
                     fillPattern= FillPattern.Solid,
@@ -81,7 +81,7 @@ model DummyModel
                     origin= {0,0},
                     pattern= LinePattern.Solid,
                     rotation= 0,
-                    startAngle= 0.0
+                    startAngle= 0
                 ),
                 Rectangle(
                     extent= {{493.25,-644.38},{855.01,-729.61}},
