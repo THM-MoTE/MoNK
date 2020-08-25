@@ -1,6 +1,9 @@
 MoNK - A MOdelica iNKscape extension
 ====================================
 
+.. image:: https://travis-ci.com/THM-MoTE/MoNK.svg?branch=master
+    :target: https://travis-ci.com/THM-MoTE/MoNK
+
 MoNK is a extension for `Inkscape`_ to produce graphical annotation strings for Modelica from an Inkscape SVG image.
 Once installed it adds the new export format "Modelica annotation (*.mo)" to the File -> Save as.. menu.
 
