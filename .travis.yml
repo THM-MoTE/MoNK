@@ -3,12 +3,13 @@ jobs:
     - os: linux
       dist: xenial
       language: python
-      python:
-        - 2.7
-        - 3.7
-        - 3.8
+      python: 2.7
+    - os: linux
+      dist: xenial
+      language: python
+      python: 3.7
     - os: windows
-      language: shell
+      language: generic
       before_install:
         - choco install python
         - refreshenv
