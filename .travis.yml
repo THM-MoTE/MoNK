@@ -12,7 +12,7 @@ jobs:
       language: shell
       before_install:
         - choco install python
-        - set PATH=%PATH%;C:\\Python38
+        - set PATH="%PATH%;C:\\Python38"
 
 
 install:
