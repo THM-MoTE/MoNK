@@ -13,7 +13,8 @@ python:
 
 install:
   - pip install future
-  - python setup.py install --defaultext
+  - python setup.py install
+  - python setup.py install_ink --defaultext
 
 script:
   - python test/runtests.py

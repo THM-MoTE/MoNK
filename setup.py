@@ -10,7 +10,6 @@ import shutil
 import tarfile
 import zipfile
 from setuptools import setup, Command
-from setuptools.command.install import install
 import io
 
 data_files = [
@@ -104,8 +103,8 @@ class BdistInkscape(Command):
                 zf.write(f, arcname=aname)
 
 
-class InstallToExtensionDir(install):
-    user_options = install.user_options + [(
+class InstallToExtensionDir(Command):
+    user_options = [(
         'defaultext', None,
         'If True, default user ext directory will be used without prompt'
     )]
@@ -173,7 +172,7 @@ setup(
         'pathlib'  # for python < 3.3
     ],
     cmdclass={
-        'install': InstallToExtensionDir,
+        'install_ink': InstallToExtensionDir,
         'bdist_ink': BdistInkscape
     },
     data_files=data_files,
