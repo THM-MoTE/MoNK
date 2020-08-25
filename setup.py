@@ -115,7 +115,8 @@ class InstallToExtensionDir(install):
 
     def run(self):
         uext = determine_user_ext(forcedefault=self.defaultext)
-        os.makedirs(uext, exist_ok=True)
+        if not os.path.exists(uext):
+            os.makedirs(uext)
         # copy source files to extension dir
         for f in [x for x in glob.glob("src/**") if ".egg-info" not in x]:
             src = f
