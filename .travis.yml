@@ -11,6 +11,7 @@ jobs:
       language: shell
       before_install:
         - choco install python
+        - refreshenv
 
 
 install:
