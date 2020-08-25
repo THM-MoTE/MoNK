@@ -2,6 +2,7 @@ import unittest
 import subprocess
 import pathlib
 import os
+import io
 
 # TODO implement smaller test cases
 
@@ -14,7 +15,7 @@ class TestSvg2Modelica(unittest.TestCase):
         ])
         expected = ""
         fexp = "examples/all_primitives_expected.mo"
-        with open(fexp, "r", encoding="utf-8") as f:
+        with io.open(fexp, "r", encoding="utf-8") as f:
             expected = f.read()
         self.assertEqual(expected.strip(), res.decode("utf-8").strip())
 
