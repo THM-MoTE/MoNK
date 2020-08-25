@@ -9,7 +9,7 @@ import os
 class TestSvg2Modelica(unittest.TestCase):
     def test_all_primitives(self):
         self.maxDiff = None
-        res = suprocess.check_output([
+        res = subprocess.check_output([
             "python", "src/svg2modelica.py", "examples/all_primitives.svg"
         ])
         expected = ""
