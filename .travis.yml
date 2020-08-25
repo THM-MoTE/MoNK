@@ -12,7 +12,7 @@ jobs:
       language: generic
       before_install:
         - choco install python
-        - refreshenv
+        - set PATH=%PATH%;C:\Python38
 
 
 install:
