@@ -143,7 +143,9 @@ setup(
     ],
     install_requires=[
         'future',
-        'setuptools'
+        'setuptools',
+        'lxml',
+        'numpy'
     ],
     cmdclass={
         'install': InstallToExtensionDir,
