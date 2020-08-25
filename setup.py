@@ -169,7 +169,8 @@ setup(
         'future',
         'setuptools',
         'lxml',
-        'numpy'
+        'numpy',
+        'pathlib'  # for python < 3.3
     ],
     cmdclass={
         'install': InstallToExtensionDir,
