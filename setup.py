@@ -47,19 +47,24 @@ def determine_ext():
     })
 
 
-def determine_user_ext():
+def determine_user_ext(forcedefault=False):
+    defaults = {
+        "win32": os.path.expanduser(
+            r'~\AppData\Roaming\inkscape\extensions'
+        ),
+        "cygwin": os.path.expanduser(
+            r'~\AppData\Roaming\inkscape\extensions'
+        ),
+        "linux": os.path.expanduser(
+            r'~/.config/inkscape/extensions/'
+        )
+    }
+    default = defaults.get(sys.platform, "")
+    if forcedefault:
+        return default
+
     return determine_dir(
-        "inkscape user extension directory", "user_ext.txt", defaults={
-            "win32": os.path.expanduser(
-                r'~\AppData\Roaming\inkscape\extensions'
-            ),
-            "cygwin": os.path.expanduser(
-                r'~\AppData\Roaming\inkscape\extensions'
-            ),
-            "linux": os.path.expanduser(
-                r'~/.config/inkscape/extensions/'
-            ),
-        }
+        "inkscape user extension directory", "user_ext.txt", defaults=defaults
     )
 
 
@@ -96,17 +101,30 @@ class BdistInkscape(Command):
 
 
 class InstallToExtensionDir(install):
+    user_options = install.user_options + [(
+        'defaultext', None,
+        'If True, default user ext directory will be used without prompt'
+    )]
+
+    def initialize_options(self):
+        self.defaultext = False
+
+    def finalize_options(self):
+        if self.defaultext == 1:
+            self.defaultext = True
+
     def run(self):
+        uext = determine_user_ext(forcedefault=self.defaultext)
         # copy source files to extension dir
         for f in [x for x in glob.glob("src/**") if ".egg-info" not in x]:
             src = f
-            dst = os.path.join(determine_user_ext(), os.path.relpath(f, "src"))
+            dst = os.path.join(uext, os.path.relpath(f, "src"))
             print("copying %s -> %s" % (src, dst))
             shutil.copyfile(src, dst)
         # copy .inx file(s) to extension dir
         for f in glob.glob("res/**"):
             src = f
-            dst = os.path.join(determine_user_ext(), os.path.relpath(f, "res"))
+            dst = os.path.join(uext, os.path.relpath(f, "res"))
             print("copying %s -> %s" % (src, dst))
             shutil.copyfile(src, dst)
 
