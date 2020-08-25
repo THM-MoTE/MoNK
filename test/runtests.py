@@ -16,8 +16,7 @@ class TestSvg2Modelica(unittest.TestCase):
         fexp = "examples/all_primitives_expected.mo"
         with open(fexp, "r", encoding="utf-8") as f:
             expected = f.read()
-        print(res.stderr)
-        self.assertEqual(expected.strip(), res.stdout.decode("utf-8").strip())
+        self.assertEqual(expected.strip(), res.decode("utf-8").strip())
 
 
 if __name__ == "__main__":
