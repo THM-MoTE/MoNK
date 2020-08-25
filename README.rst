@@ -28,12 +28,13 @@ If Python is installed on your machine, you can just run
 
 from inside the main folder of this project and the script will automatically locate your Inkscape extension folder and place the necessary files in that folder.
 
-Alternatively, you can download a release distribution from GitHub, which only contains the files that need to be put in the Inkscape extension folder.
+Alternatively, you can download a `release distribution from GitHub`_, which only contains the files that need to be put in the Inkscape extension folder.
 The correct folder is:
 
 - For Windows: ``%userprofile%\AppData\Roaming\inkscape\extensions``
 - For Linux: ``~/.config/inkscape/extensions/``
 
+.. _release distribution from GitHub: https://github.com/THM-MoTE/MoNK/releases/latest
 
 Features
 --------
