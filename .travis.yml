@@ -4,6 +4,7 @@ jobs:
       dist: xenial
       language: python
     - os: windows
+      language: shell
 
 python:
     - 2.7
