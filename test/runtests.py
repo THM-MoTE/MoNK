@@ -9,9 +9,9 @@ import os
 class TestSvg2Modelica(unittest.TestCase):
     def test_all_primitives(self):
         self.maxDiff = None
-        res = subprocess.run([
+        res = suprocess.check_output([
             "python", "src/svg2modelica.py", "examples/all_primitives.svg"
-        ], capture_output=True)
+        ])
         expected = ""
         fexp = "examples/all_primitives_expected.mo"
         with open(fexp, "r", encoding="utf-8") as f:
