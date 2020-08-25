@@ -102,8 +102,9 @@ class ModelicaElement(object):
             if len(self.data) > 0:
                 inner += ","
             inner += line_delim
+        attribs = sorted(self.data.items(), key=lambda x: x[0])
         inner += (","+line_delim).join([
-                "{0}= {1}".format(k, v) for k, v in self.data.items()
+                "{0}= {1}".format(k, v) for k, v in attribs
         ])
         inner += "\n"+INDENT*(self.n_indent-1)
         res = "{0}({1})".format(self.name, inner)
