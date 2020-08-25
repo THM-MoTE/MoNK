@@ -139,7 +139,7 @@ with io.open("README.rst", "r", encoding="utf-8") as f:
 
 version = '0.2.0'
 setup(
-    name='svg2modelica',
+    name='MoNK',
     package_dir={'': 'src'},
     py_modules=['svg2modelica'],
     version=version,
@@ -149,8 +149,8 @@ setup(
     long_description=readme,
     author='Christopher Schölzel',
     author_email='christopher.schoelzel@gmx.net',
-    url='https://github.com/CSchoel/svg2modelica',
-    download_url='https://github.com/CSchoel/svg2modelica/tarball/' + version,
+    url='https://github.com/THM-MoTE/MoNK',
+    download_url='https://github.com/THM-MoTE/MoNK/tarball/v' + version,
     keywords=[
         'Modelica', 'inkscape', 'inkscape extension', 'Modelica annotation'],
     classifiers=[
