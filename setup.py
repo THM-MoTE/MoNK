@@ -61,7 +61,7 @@ def determine_user_ext(forcedefault=False):
     }
     if sys.platform.startswith("linux"):
         # prior to python 3.3, sys.platform was "linux2", "linux3", and so on
-        default = detaults.get("linux")
+        default = defaults.get("linux")
     else:
         default = defaults.get(sys.platform, "")
     if forcedefault:
