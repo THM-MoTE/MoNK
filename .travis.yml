@@ -22,5 +22,3 @@ install:
 
 script:
   - python test/runtests.py
-  - cd test
-  - python -m unittest runtests
