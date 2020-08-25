@@ -59,7 +59,11 @@ def determine_user_ext(forcedefault=False):
             r'~/.config/inkscape/extensions/'
         )
     }
-    default = defaults.get(sys.platform, "")
+    if sys.platform.startswith("linux"):
+        # prior to python 3.3, sys.platform was "linux2", "linux3", and so on
+        default = detaults.get("linux")
+    else:
+        default = defaults.get(sys.platform, "")
     if forcedefault:
         return default
 
