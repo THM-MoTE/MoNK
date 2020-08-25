@@ -21,5 +21,5 @@ class TestSvg2Modelica(unittest.TestCase):
 
 
 if __name__ == "__main__":
-    os.chdir(pathlib.Path(__file__).parents[1])
+    os.chdir(str(pathlib.Path(__file__).parents[1]))
     unittest.main()
