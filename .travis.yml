@@ -9,6 +9,8 @@ jobs:
         - 3.8
     - os: windows
       language: shell
+      before_install:
+        - choco install python
 
 
 install:
