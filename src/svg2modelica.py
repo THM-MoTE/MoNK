@@ -559,8 +559,8 @@ class ModelicaEllipse(ModelicaElement, GraphicItem, FilledShape):
         self.autoset_angles(el)
 
     def set_angles(self,  startAngle, endAngle):
-        self.add_attribute("startAngle", startAngle)
-        self.add_attribute("endAngle", endAngle)
+        self.add_attribute("startAngle", to_s(startAngle))
+        self.add_attribute("endAngle", to_s(endAngle))
 
     def autoset_angles(self, el):
         if tn(el) != "path":
