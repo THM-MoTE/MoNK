@@ -12,9 +12,7 @@ jobs:
       language: shell
       before_install:
         - choco install python
-        - set PATH="%PATH%;C:\Python38;C:\Python38\Scripts"
-        - echo %PATH%
-        - C:\\Python38\\Scripts\\pip install future
+        - export PATH="$PATH:/C/Python38/:/C/Python38/Scripts"
 
 
 install:
