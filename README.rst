@@ -21,7 +21,7 @@ Installation
 
 If Python is installed on your machine, you can just run
 
-``python setup.py install``
+``python setup.py install_ink``
 
 from inside the main folder of this project and the script will automatically locate your Inkscape extension folder and place the necessary files in that folder.
 
