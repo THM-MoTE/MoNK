@@ -111,6 +111,9 @@ class InstallToExtensionDir(install):
             shutil.copyfile(src, dst)
 
 
+with io.open("README.rst", "r", encoding="utf-8") as f:
+    readme = f.read()
+
 version = '0.2.0'
 setup(
     name='svg2modelica',
@@ -120,7 +123,7 @@ setup(
     platforms="any",
     license="MIT",
     description='Inkscape plugin to save document as Modelica annotation.',
-    long_description='TODO',
+    long_description=readme,
     author='Christopher Schölzel',
     author_email='christopher.schoelzel@gmx.net',
     url='https://github.com/CSchoel/svg2modelica',
