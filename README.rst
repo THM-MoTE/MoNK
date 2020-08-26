@@ -118,6 +118,8 @@ Tips and workarounds for unsupported elements and attributes
 
 The following manual adjustments may be necessary for annotations produced by this extension:
 
-* ``lineThickness`` and ``thickness`` attributes are zoom-invariant in OpenModelica, which can require the use of smaller thickness values
-* ``Text`` elements might not have the correct size, as this can only be approximated without actually rendering the text
-* smooth ``Line`` and ``Polygon`` elements have to be drawn without smooth elements and can then be smoothed afterwards by changing the ``smooth`` parameter in OpenModelica
+- ``lineThickness`` and ``thickness`` attributes are zoom-invariant in OpenModelica, which can require the use of smaller thickness values
+- ``Text`` elements might not have the correct size, as this can only be approximated without actually rendering the text
+- smooth ``Line`` and ``Polygon`` elements have to be drawn without smooth elements and can then be smoothed afterwards by changing the ``smooth`` parameter in OpenModelica
+- Always use "Save a Copy..." instead of "Save as..." in Inkscape, since ``.mo`` is only an export format that cannot be imported again.
+  If you want to change your drawing afterwards, you will still have to save a ``.svg`` version of it.
