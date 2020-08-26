@@ -16,7 +16,8 @@ class TestSvg2Modelica(unittest.TestCase):
     def test_all_primitives(self):
         self.maxDiff = None
         res = subprocess.check_output([
-            "python", "src/svg2modelica.py", "examples/all_primitives.svg"
+            "python", "src/svg2modelica.py", "-s true",
+            "examples/all_primitives.svg"
         ])
         expected = ""
         fexp = "examples/all_primitives_expected.mo"
