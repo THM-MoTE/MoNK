@@ -137,7 +137,7 @@ class InstallToExtensionDir(Command):
 with io.open("README.rst", "r", encoding="utf-8") as f:
     readme = f.read()
 
-version = '0.2.0'
+version = '0.2.1'
 setup(
     name='MoNK',
     package_dir={'': 'src'},
