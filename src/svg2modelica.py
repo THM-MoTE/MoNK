@@ -222,7 +222,7 @@ class ModelicaGraphicsContainer(object):
         tag = tn(el)
         if not isinstance(el, etree._Element):
             return None
-        if tag in ["defs", "metadata"]:
+        if tag in ["defs", "metadata", "namedview"]:
             return None
         elif tag == "rect":
             return ModelicaRectangle(
