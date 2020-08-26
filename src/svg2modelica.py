@@ -16,6 +16,11 @@ def identity(x):
     return x
 
 
+class MoNKError(Exception):
+    def __init__(self, msg):
+        self.msg = msg
+
+
 INDENT = "    "
 
 re_to_f = re.compile(r"(\-?\d+(?:\.\d+)?(?:e\-?\d+)?)[^\d]*")
@@ -51,7 +56,9 @@ def parse_svg(fname, modelname, strict=False, normalize_extent=False):
         + "{0}{0}{2}\n" \
         + "{0});\n" \
         + "end {1};"
-    main_icon = ModelicaIcon(document, normalize_extent=normalize_extent)
+    main_icon = ModelicaIcon(
+        document, normalize_extent=normalize_extent, strict=strict
+    )
     print(res.format(INDENT, modelname, main_icon))
 
 
@@ -78,11 +85,12 @@ def transform_units(value, from_unit, to_unit):
 
 
 class ModelicaElement(object):
-    def __init__(self, name, el, n_indent=3, coords=None):
+    def __init__(self, name, el, n_indent=3, coords=None, strict=False):
         self.name = name
         self.data = {}
         self.elems = []
         self.n_indent = n_indent
+        self.strict = strict
         self.add_attributes(el)
 
     def add_attribute(self, key, value):
@@ -112,11 +120,16 @@ class ModelicaElement(object):
 
 
 class ModelicaIcon(ModelicaElement):
-    def __init__(self, doc, n_indent=3, normalize_extent=False, coords=None):
+    def __init__(
+            self, doc, n_indent=3, normalize_extent=False, coords=None,
+            strict=False
+    ):
         # needs to be initialized first, because add_attribute is called in
         # superclass constructor
         self.norm_extent = normalize_extent
-        ModelicaElement.__init__(self, "Icon", doc, n_indent, coords=coords)
+        ModelicaElement.__init__(
+            self, "Icon", doc, n_indent, coords=coords, strict=strict
+        )
 
     def add_attributes(self, doc):
         coords = ModelicaCoordinateSystem(
@@ -127,17 +140,18 @@ class ModelicaIcon(ModelicaElement):
         self.add_attribute(
             "graphics",
             ModelicaGraphicsContainer(
-                doc, n_indent=self.n_indent+1, coords=coords
+                doc, n_indent=self.n_indent+1, coords=coords,
+                strict=self.strict
             )
         )
 
 
 class ModelicaCoordinateSystem(ModelicaElement):
-    def __init__(self, svg, n_indent=4, normalize_extent=False):
+    def __init__(self, svg, n_indent=4, normalize_extent=False, strict=False):
         # needs to be set first to be available in add_attributes
         self.norm_extent = normalize_extent
         ModelicaElement.__init__(
-            self, "coordinateSystem", svg, n_indent=n_indent
+            self, "coordinateSystem", svg, n_indent=n_indent, strict=strict
         )
         self.px2mm_factor_x = 1
         self.px2mm_factor_y = 1
@@ -197,48 +211,66 @@ class ModelicaCoordinateSystem(ModelicaElement):
 
 
 class ModelicaGraphicsContainer(object):
-    def __init__(self, doc, n_indent=4, coords=None):
+    def __init__(self, doc, n_indent=4, coords=None, strict=False):
         self.n_indent = n_indent
         self.elems = []
         self.coords = coords
+        self.strict = strict
         self.add_descendants(doc.getroot())
 
     def to_modelica(self, el):
         tag = tn(el)
         if not isinstance(el, etree._Element):
             return None
-        if tag == "rect":
-            return ModelicaRectangle(el, self.n_indent+1, coords=self.coords)
+        if tag in ["defs", "metadata"]:
+            return None
+        elif tag == "rect":
+            return ModelicaRectangle(
+                el, self.n_indent+1, coords=self.coords, strict=self.strict
+            )
         elif tag == "path":
             fill = get_style_attribute(el, "fill")
             if get_ns_attribute(el, "sodipodi", "type") == "arc":
-                return ModelicaEllipse(el, self.n_indent+1, coords=self.coords)
+                return ModelicaEllipse(
+                    el, self.n_indent+1, coords=self.coords, strict=self.strict
+                )
             elif re.match(r".*[zZ]\s*$", el.get("d")):
-                return ModelicaPolygon(el, self.n_indent+1, coords=self.coords)
+                return ModelicaPolygon(
+                    el, self.n_indent+1, coords=self.coords, strict=self.strict
+                )
             elif fill is not None and (fill != "none"):
-                return ModelicaPolygon(el, self.n_indent+1, coords=self.coords)
+                return ModelicaPolygon(
+                    el, self.n_indent+1, coords=self.coords, strict=self.strict
+                )
             else:
-                return ModelicaLine(el, self.n_indent+1, coords=self.coords)
+                return ModelicaLine(
+                    el, self.n_indent+1, coords=self.coords, strict=self.strict
+                )
         elif tag == "circle":
-            return ModelicaEllipse(el, self.n_indent+1, coords=self.coords)
+            return ModelicaEllipse(
+                el, self.n_indent+1, coords=self.coords, strict=self.strict
+            )
         elif tag == "ellipse":
-            return ModelicaEllipse(el, self.n_indent+1, coords=self.coords)
+            return ModelicaEllipse(
+                el, self.n_indent+1, coords=self.coords, strict=self.strict
+            )
         elif tag == "text":
-            return ModelicaText(el, self.n_indent+1, coords=self.coords)
+            return ModelicaText(
+                el, self.n_indent+1, coords=self.coords, strict=self.strict
+            )
         else:
-            # TODO this is where we have to decide if we want errors
+            if self.strict:
+                raise MoNKError("tag {} is not supported".format(tag))
             return None
         # TODO (nice to have) support bitmap images
 
     def add_descendants(self, el):
         for c in el.iterchildren():
             m = self.to_modelica(c)
-            # exclude definitions, metadata and text nodes
-            if m is None and isinstance(c, etree._Element) \
-                    and tn(c) not in ["defs", "metadata"]:
-                self.add_descendants(c)
-            elif m is not None:
+            if m is not None:
                 self.elems.append(m)
+            elif tn(c) == "g":
+                self.add_descendants(c)
 
     def add_element(self, modelica_el):
         self.elems.append(modelica_el)
@@ -332,10 +364,16 @@ class GraphicItem(object):
         return np.dot(mpar, mel)
 
     def parse_transform(self, transform):
-        # TODO does not handle multiple transforms in one string
-        # NOT SUPPORTED: does not handle skew and scale
         if transform is None:
             return np.eye(3, dtype="float32")
+        # handle multiple transform statements in one string
+        parts = re.findall(r"[a-zA-Z]+\s*\([-\d.,\s]+\)", transform)
+        if len(parts) > 1:
+            mat = np.eye(3, dtype="float32")
+            # parse and apply individual transforms right to left
+            for p in reversed(parts):
+                mat = np.dot(mat, parse_fransform(p))
+            return mat
         exp_matrix = re.compile(r"""
             \s*matrix\s*
             \(
@@ -400,6 +438,9 @@ class GraphicItem(object):
                     [0, 0, 1]
                 ])
         else:
+            # NOT SUPPORTED: does not handle skew and scale
+            if self.strict:
+                raise MoNKError("cannot handle transform={}".format(transform))
             # ignore what we cannot handle
             mat = np.eye(3, dtype="float32")
 
@@ -422,6 +463,22 @@ class GraphicItem(object):
         rotated_x = np.dot(rmat, np.array([[1], [0], [1]]))
         # determine angle between starting vector and rotated vector
         alpha = np.arctan2(rotated_x[1, 0], rotated_x[0, 0])
+        if self.strict:
+            # check that decomposed matrix equals the original matrix
+            ref = np.array(
+                [
+                    [np.cos(alpha), -np.sin(alpha), tx],
+                    [np.sin(alpha), np.cos(alpha), ty],
+                    [0, 0, 1]
+                ],
+                dtype="float32"
+            )
+            if not np.all(np.isclose(np.flatten(mat), np.flatten(ref))):
+                raise MoNKError("".join([
+                    "Transformation matrix {0} is not reducible to angle + ",
+                    "origin form.\n\n",
+                    "{0}\n!=\n{1}"
+                ]).format(mat, ref))
         return tx, ty, alpha
 
     def autoset_rotation_and_origin(self, el):
@@ -453,7 +510,10 @@ class FilledShape(object):
             return self.css_hex_to_modelica(att)
         if att.startswith("rgb"):
             return self.css_rgb_to_modelica(att)
-        # NOT SUPPORTED: none, currentColor, inherit, url(), css color names
+        if self.strict:
+            # NOT SUPPORTED: none, currentColor, inherit, url(),
+            # css color names
+            raise MoNKError("color definition {} is not supported".format(att))
         return None
 
     def set_fill_color(self, r, g, b):
@@ -478,7 +538,12 @@ class FilledShape(object):
         if att == "none":
             return LinePattern.NONE
         # NOT SUPPORTED: Dash, Dot, DashDot, DashDotDot,
-        # svg css stroke-dasharray and stroke-dashoffset values
+        if self.strict:
+            # NOT SUPPORTED: css stroke-dasharray and stroke-dashoffset values
+            uns = ["stroke-dasharray", "stroke-dashoffset"]
+            for a in uns:
+                if att.get_style_attribute(el, a) is not None:
+                    raise MoNKError("{} is not supported".format(a))
         return LinePattern.SOLID
 
     def autoset_line_pattern(self, el):
@@ -493,7 +558,12 @@ class FilledShape(object):
             return FillPattern.NONE
         # NOT SUPPORTED (modelica): Horizontal Vertical Cross Forward
         # Backward CrossDiag HorizontalCylinder VerticalCylinder Sphere
-        # NOT SUPPORTED (svg): css fill-rule and fill-opacity
+        if self.strict:
+            # NOT SUPPORTED (svg): css fill-rule and fill-opacity
+            uns = ["fill-rule", "fill-opacity"]
+            for a in uns:
+                if att.get_style_attribute(el, a) is not None:
+                    raise MoNKError("{} is not supported".format(a))
         return FillPattern.SOLID
 
     def autoset_fill_pattern(self, el):
@@ -511,6 +581,8 @@ class FilledShape(object):
         if "%" in att or att == "inherit":
             # NOT SUPPORTED (svg): inherit, percentage
             # (need viewport info for that)
+            if self.strict:
+                raise MoNKError("stroke-width {} not supported".format(att))
             return 1.0
         return to_f(att)
 
@@ -547,9 +619,11 @@ class FilledShape(object):
 
 
 class ModelicaEllipse(ModelicaElement, GraphicItem, FilledShape):
-    def __init__(self, el, n_indent=5, coords=None):
+    def __init__(self, el, n_indent=5, coords=None, strict=False):
         GraphicItem.__init__(self, coords)
-        ModelicaElement.__init__(self, "Ellipse", el, n_indent, coords=coords)
+        ModelicaElement.__init__(
+            self, "Ellipse", el, n_indent, coords=coords, strict=strict
+        )
 
     def add_attributes(self,  el):
         ModelicaElement.add_attributes(self, el)
@@ -608,10 +682,11 @@ class ModelicaEllipse(ModelicaElement, GraphicItem, FilledShape):
 
 
 class ModelicaRectangle(ModelicaElement, GraphicItem, FilledShape):
-    def __init__(self, el, n_indent=5, coords=None):
+    def __init__(self, el, n_indent=5, coords=None, strict=False):
         GraphicItem.__init__(self, coords)
         ModelicaElement.__init__(
-            self, "Rectangle", el, n_indent=n_indent, coords=coords
+            self, "Rectangle", el, n_indent=n_indent, coords=coords,
+            strict=strict
         )
 
     def add_attributes(self, el):
@@ -619,8 +694,8 @@ class ModelicaRectangle(ModelicaElement, GraphicItem, FilledShape):
         self.autoset_rotation_and_origin(el)
         self.autoset_shape_values(el)
         self.autoset_extent(el)
-        # TODO corner radius
-        # UNSUPPORTED ATTRIBUTES: borderPattern
+        self.autoset_radius(el)
+        # NOT SUPPORTED (Modelica): borderPattern
 
     def set_extent(self, x1, y1, x2, y2):
         self.add_attribute(
@@ -641,7 +716,32 @@ class ModelicaRectangle(ModelicaElement, GraphicItem, FilledShape):
         ext = self.find_extent(el)
         self.set_extent(*ext)
 
-    def set_corner_radius(self, cr):
+    def autoset_radius(self, el):
+        rx = el.get("rx")
+        ry = el.get("ry")
+        if rx is None and ry is None:
+            return
+        if rx is None:
+            if self.strict:
+                raise MoNKError(
+                    "rx and ry must be equal (ry was None, but rx was not)"
+                )
+            rx = 0
+        if ry is None:
+            if self.strict:
+                raise MoNKError(
+                    "rx and ry must be equal (rx was None, but ry was not)"
+                )
+            ry = 0
+        rx = float(rx)
+        ry = float(ry)
+        if self.strict and not np.isclose(rx, ry):
+            raise MoNKError(
+                "rx and ry must be equal ({} != {})".format(rx, ry)
+            )
+        self.set_radius((rx + ry) / 2.0)
+
+    def set_radius(self, cr):
         self.add_attribute("radius", cr)
 
     def set_border_pattern(self, bp):
@@ -649,9 +749,11 @@ class ModelicaRectangle(ModelicaElement, GraphicItem, FilledShape):
 
 
 class ModelicaPath(ModelicaElement, GraphicItem):
-    def __init__(self, name, el, n_indent=3, coords=None):
+    def __init__(self, name, el, n_indent=3, coords=None, strict=False):
         GraphicItem.__init__(self, coords)
-        ModelicaElement.__init__(self, name, el, n_indent, coords=coords)
+        ModelicaElement.__init__(
+            self, name, el, n_indent, coords=coords, strict=strict
+        )
 
     def add_attributes(self, el):
         ModelicaElement.add_attributes(self, el)
@@ -750,8 +852,11 @@ class ModelicaPath(ModelicaElement, GraphicItem):
                 i += width
             else:
                 # TODO handle smooth paths correctly (as far as possible)
-                # UNSUPPORTED: smooth paths
-                raise ValueError("{0} not supported!".format(tokens[i]))
+                # NOT SUPPORTED: smooth paths
+                if self.strict:
+                    raise MoNKError("{0} not supported!".format(tokens[i]))
+                # abandon path, since it will be messed up anyway
+                return []
         return points
 
     def set_points(self, points):
@@ -765,8 +870,10 @@ class ModelicaPath(ModelicaElement, GraphicItem):
 
 
 class ModelicaPolygon(ModelicaPath, FilledShape):
-    def __init__(self, el, n_indent=5, coords=None):
-        ModelicaPath.__init__(self, "Polygon", el, n_indent, coords=coords)
+    def __init__(self, el, n_indent=5, coords=None, strict=False):
+        ModelicaPath.__init__(
+            self, "Polygon", el, n_indent, coords=coords, strict=strict
+        )
 
     def add_attributes(self, el):
         ModelicaPath.add_attributes(self, el)
@@ -775,8 +882,10 @@ class ModelicaPolygon(ModelicaPath, FilledShape):
 
 class ModelicaLine(ModelicaPath, FilledShape):
     # line is no filled shape, but we need some of the methods
-    def __init__(self, el, n_indent=5, coords=None):
-        ModelicaPath.__init__(self, "Line", el, n_indent, coords=coords)
+    def __init__(self, el, n_indent=5, coords=None, strict=False):
+        ModelicaPath.__init__(
+            self, "Line", el, n_indent, coords=coords, strict=strict
+        )
 
     def add_attributes(self, el):
         ModelicaPath.add_attributes(self, el)
@@ -826,9 +935,11 @@ class ModelicaLine(ModelicaPath, FilledShape):
 
 
 class ModelicaText(ModelicaElement, GraphicItem, FilledShape):
-    def __init__(self, el, n_indent=5, coords=None):
+    def __init__(self, el, n_indent=5, coords=None, strict=False):
         GraphicItem.__init__(self, coords)
-        ModelicaElement.__init__(self, "Text", el, n_indent, coords=coords)
+        ModelicaElement.__init__(
+            self, "Text", el, n_indent, coords=coords, strict=strict
+        )
         self.font_size_mm = None
 
     def add_attributes(self, el):
