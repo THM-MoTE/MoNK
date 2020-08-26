@@ -543,7 +543,8 @@ class FilledShape(object):
             # NOT SUPPORTED: css stroke-dasharray and stroke-dashoffset values
             uns = ["stroke-dasharray", "stroke-dashoffset"]
             for a in uns:
-                if att.get_style_attribute(el, a) is not None:
+                val = get_style_attribute(el, a)
+                if val is not None and val != "none":
                     raise MoNKError("{} is not supported".format(a))
         return LinePattern.SOLID
 
@@ -559,12 +560,12 @@ class FilledShape(object):
             return FillPattern.NONE
         # NOT SUPPORTED (modelica): Horizontal Vertical Cross Forward
         # Backward CrossDiag HorizontalCylinder VerticalCylinder Sphere
+        # NOT SUPPORTED (svg): css fill-rule (ignored, because not relevant)
         if self.strict:
-            # NOT SUPPORTED (svg): css fill-rule and fill-opacity
-            uns = ["fill-rule", "fill-opacity"]
-            for a in uns:
-                if att.get_style_attribute(el, a) is not None:
-                    raise MoNKError("{} is not supported".format(a))
+            # NOT SUPPORTED (svg): css fill-opacity
+            fo = get_style_attribute(el, "fill-opacity")
+            if fo is not None and not np.isclose(float(fo), 1):
+                raise MoNKError("fill-opacity < 1 is not supported")
         return FillPattern.SOLID
 
     def autoset_fill_pattern(self, el):
