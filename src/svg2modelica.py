@@ -124,7 +124,7 @@ class ModelicaElement(object):
         val = get_style_attribute(el, key)
         if val is None:
             return
-        if isinstance(default, (int, long, float)):
+        if isinstance(default, (int, float)):
             isdefault = np.isclose(float(val), default)
         else:
             isdefault = val == default
