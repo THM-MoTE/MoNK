@@ -474,7 +474,7 @@ class GraphicItem(object):
                 ],
                 dtype="float32"
             )
-            if not np.all(np.isclose(np.flatten(mat), np.flatten(ref))):
+            if not np.all(np.isclose(mat.flatten(), ref.flatten())):
                 raise MoNKError("".join([
                     "Transformation matrix {0} is not reducible to angle + ",
                     "origin form.\n\n",
