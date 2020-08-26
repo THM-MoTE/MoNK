@@ -8,11 +8,15 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Added
 
-[nothing]
+* description of script parameters in readme
+* `strict` parameter now does lead to exceptions
+* support for corner radius of `<rect>` elements
+* support for `"none"` value for color definitions
+* experimental support for `transform` values with multiple elements
 
 ### Changed
 
-[nothing]
+* better description what it means that `fill-rule` is not supported
 
 ### Fixed
 

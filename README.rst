@@ -79,11 +79,10 @@ Unsupported SVG elements and attributes:
 
 - Smooth paths (path characters ``C``, ``c``, ``S``, ``s``, ``Q``, ``q``, ``T``, ``t``, ``A``, ``a``)
 - css attributes ``stroke-dasharray`` and ``stroke-dashoffset``
-- css attribute ``fill-opacity``
-- css ``stroke-width`` values ``inherit`` or percent values
-- corner radius for ``<rect>``
+- css attribute ``fill-opacity`` and ``stroke-opacity``
+- css ``stroke-width`` values given as ``inherit`` or percentages
 - actual parsing of different marker types for ``marker-start`` and ``marker-end``
-- complex ``transform`` attributes including skew and scale or multiple statements
+- ``transform`` attributes including skew and scale expressions (directly or in matrix form)
 - ``<image>``, ``<line>``, ``<polygon>``, ``<polyline>``, and other tags not listed as supported
 - ``<path>`` with "holes" (settings for css property ``fill-rule`` are ignored)
 
@@ -108,10 +107,10 @@ Unsupported Modelica elements and attributes:
 
 - ``LinePattern``s ``Dash``, ``Dot``, ``DashDot``, and ``DashDotDot``
 - ``FillPattern``s ``Horizontal``, ``Vertical``, ``Cross``, ``Forward``, ``Backward``, ``CrossDiag``, ``HorizontalCylinder``, ``VerticalCylinder``, and ``Sphere``
-- ``radius`` and ``borderPattern`` for ``Rectangle``
+- ``borderPattern`` for ``Rectangle``
 - ``Smooth.Bezier``
 - ``Arrow.Filled``, ``Arrow.Half``
-- ``extent`` of ``Text`` annotation is not scaled to actual text size, because this would require rendering the text
+- ``extent`` of ``Text`` annotation is not scaled to actual text size, but only approximated (exact scaling would require rendering the text)
 - ``Bitmap``
 
 Tips and workarounds for unsupported elements and attributes
