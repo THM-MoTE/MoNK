@@ -79,12 +79,13 @@ Unsupported SVG elements and attributes:
 
 - Smooth paths (path characters ``C``, ``c``, ``S``, ``s``, ``Q``, ``q``, ``T``, ``t``, ``A``, ``a``)
 - css attributes ``stroke-dasharray`` and ``stroke-dashoffset``
-- css attributes ``fill-rule`` and ``fill-opacity``
+- css attribute ``fill-opacity``
 - css ``stroke-width`` values ``inherit`` or percent values
 - corner radius for ``<rect>``
 - actual parsing of different marker types for ``marker-start`` and ``marker-end``
 - complex ``transform`` attributes including skew and scale or multiple statements
 - ``<image>``, ``<line>``, ``<polygon>``, ``<polyline>``, and other tags not listed as supported
+- ``<path>`` with "holes" (settings for css property ``fill-rule`` are ignored)
 
 
 Supported Modelica elements and attributes:
