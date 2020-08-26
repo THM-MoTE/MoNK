@@ -266,11 +266,12 @@ class ModelicaGraphicsContainer(object):
 
     def add_descendants(self, el):
         for c in el.iterchildren():
-            m = self.to_modelica(c)
-            if m is not None:
-                self.elems.append(m)
-            elif tn(c) == "g":
+            if tn(c) == "g":
                 self.add_descendants(c)
+            else:
+                m = self.to_modelica(c)
+                if m is not None:
+                    self.elems.append(m)
 
     def add_element(self, modelica_el):
         self.elems.append(modelica_el)
