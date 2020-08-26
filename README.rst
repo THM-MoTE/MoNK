@@ -123,3 +123,7 @@ The following manual adjustments may be necessary for annotations produced by th
 - smooth ``Line`` and ``Polygon`` elements have to be drawn without smooth elements and can then be smoothed afterwards by changing the ``smooth`` parameter in OpenModelica
 - Always use "Save a Copy..." instead of "Save as..." in Inkscape, since ``.mo`` is only an export format that cannot be imported again.
   If you want to change your drawing afterwards, you will still have to save a ``.svg`` version of it.
+- In order to approximate smooth paths for use in Modelica, you can draw a smooth path in Inkscape and then use the "Insert nodes" tool to add new nodes between each two consecutive nodes.
+  Usually you should only have to do this once or twice to get satisfactory accuracy to then turn all nodes into corner nodes by clicking "make selected nodes corner" twice.
+  This will allow you to transfer the shape to Modelica, where you can then manually add the attribute ``smooth=Smooth.Bezier``.
+  For sharp corners you will need to add a second node at the corner that is very close to the first node, but otherwise this method can give passable results.
