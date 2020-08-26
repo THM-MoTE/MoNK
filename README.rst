@@ -36,6 +36,25 @@ The correct folder is:
 
 .. _release distribution from GitHub: https://github.com/THM-MoTE/MoNK/releases/latest
 
+
+Script parameters
+-----------------
+
+The main script of MoNK is found in ``src/svg2modelica.py``.
+This file is called from within Inkscape to print the resulting Modelica code on stdout.
+It can take the following parameters:
+
+- ``svgfile`` is the filename of the SVG document that should be translated.
+  This must be the first parameter.
+- ``--modelname=SomeString`` (shorthand ``-m SomeString``) determines the model name that should be written to the Modelica output.
+  This should be the same name as the file name chosen in Inkscape in order to load the model in an IDE like OpenModelica to examine the results.
+- ``--strict=True|False`` (shorthand ``-s True|False``) if true, non-translatable elements in the SVG document are treated as errors.
+  Otherwise they are simply ignored.
+- ``--normalize_extent=True|False`` (shorthand ``-n True|False``) if true, the ``extent`` attribute of the ``coordinateSystem`` element in the Modelica output will be normalized to fit within ``{{-100, -100}, {100, 100}}``.
+  This is not required by the Modelica specification, but a de facto standard that is also assumed in OMEdit.
+  Unnormalized icons may look fine in the diagram view, but might be cropped in the tree view for selecting classes.
+
+
 Features
 --------
 
