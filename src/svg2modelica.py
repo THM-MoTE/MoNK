@@ -129,7 +129,7 @@ class ModelicaElement(object):
         else:
             isdefault = val == default
         if not isdefault:
-            raise MoNKError("css attribute {} is not supported".format(a))
+            raise MoNKError("css attribute {} is not supported".format(key))
 
 
 class ModelicaIcon(ModelicaElement):
