@@ -118,6 +118,19 @@ class ModelicaElement(object):
         res = "{0}({1})".format(self.name, inner)
         return res
 
+    def check_unsupported_css(self, el, key, default):
+        if not self.strict:
+            return  # skip check
+        val = get_style_attribute(el, key)
+        if val is None:
+            return
+        if isinstance(default, (int, long, float)):
+            isdefault = np.isclose(float(val), default)
+        else:
+            isdefault = val == default
+        if not isdefault:
+            raise MoNKError("css attribute {} is not supported".format(a))
+
 
 class ModelicaIcon(ModelicaElement):
     def __init__(
@@ -539,13 +552,10 @@ class FilledShape(object):
         if att == "none":
             return LinePattern.NONE
         # NOT SUPPORTED: Dash, Dot, DashDot, DashDotDot,
-        if self.strict:
-            # NOT SUPPORTED: css stroke-dasharray and stroke-dashoffset values
-            uns = ["stroke-dasharray", "stroke-dashoffset"]
-            for a in uns:
-                val = get_style_attribute(el, a)
-                if val is not None and val != "none":
-                    raise MoNKError("{} is not supported".format(a))
+        # NOT SUPPORTED: css stroke-dasharray and stroke-dashoffset values
+        self.check_unsupported_css(el, "stroke-dasharray", "none")
+        self.check_unsupported_css(el, "stroke-dashoffset", "none")
+        self.check_unsupported_css(el, "stroke-opacity", 1)
         return LinePattern.SOLID
 
     def autoset_line_pattern(self, el):
@@ -561,11 +571,8 @@ class FilledShape(object):
         # NOT SUPPORTED (modelica): Horizontal Vertical Cross Forward
         # Backward CrossDiag HorizontalCylinder VerticalCylinder Sphere
         # NOT SUPPORTED (svg): css fill-rule (ignored, because not relevant)
-        if self.strict:
-            # NOT SUPPORTED (svg): css fill-opacity
-            fo = get_style_attribute(el, "fill-opacity")
-            if fo is not None and not np.isclose(float(fo), 1):
-                raise MoNKError("fill-opacity < 1 is not supported")
+        # NOT SUPPORTED (svg): css fill-opacity
+        self.check_unsupported_css(el, "fill-opacity", 1)
         return FillPattern.SOLID
 
     def autoset_fill_pattern(self, el):
