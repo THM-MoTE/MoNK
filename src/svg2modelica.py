@@ -505,14 +505,14 @@ class FilledShape(object):
         return self.attribute_value_to_color(att)
 
     def attribute_value_to_color(self, att):
-        if att is None:
+        if att is None or att == "none":
             return None
         if att.startswith("#"):
             return self.css_hex_to_modelica(att)
         if att.startswith("rgb"):
             return self.css_rgb_to_modelica(att)
         if self.strict:
-            # NOT SUPPORTED: none, currentColor, inherit, url(),
+            # NOT SUPPORTED: currentColor, inherit, url(),
             # css color names
             raise MoNKError("color definition {} is not supported".format(att))
         return None
