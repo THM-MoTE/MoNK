@@ -556,7 +556,7 @@ class FilledShape(object):
         # NOT SUPPORTED: Dash, Dot, DashDot, DashDotDot,
         # NOT SUPPORTED: css stroke-dasharray and stroke-dashoffset values
         self.check_unsupported_css(el, "stroke-dasharray", "none")
-        self.check_unsupported_css(el, "stroke-dashoffset", "none")
+        self.check_unsupported_css(el, "stroke-dashoffset", 0)
         self.check_unsupported_css(el, "stroke-opacity", 1)
         return LinePattern.SOLID
 
