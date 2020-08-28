@@ -127,3 +127,5 @@ The following manual adjustments may be necessary for annotations produced by th
   Usually you should only have to do this once or twice to get satisfactory accuracy to then turn all nodes into corner nodes by clicking "make selected nodes corner" twice.
   This will allow you to transfer the shape to Modelica, where you can then manually add the attribute ``smooth=Smooth.Bezier``.
   For sharp corners you will need to add a second node at the corner that is very close to the first node, but otherwise this method can give passable results.
+- Most of the time you can avoid errors with unsupported transforms by ungrouping paths in Inkscape.
+  By default, Inkscape will apply ``transform`` attributes to groups, but for individual paths the attribute will be removed and the path coordinates will be updated instead.
