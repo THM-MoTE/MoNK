@@ -1090,7 +1090,9 @@ class ModelicaText(ModelicaElement, GraphicItem, FilledShape):
         ",".join([styles[x] for x in style])
         if len(style) > 0:
             self.add_attribute("textStyle", "{%s}" % style_string)
-        self.add_attribute("fontName", fontName)
+        # ignore "default" font names
+        if fontName not in ["Arial", "sans-serif"]:
+            self.add_attribute("fontName", '"' + fontName + '"')
         # save unnormalized font size to calculate extent later
         self.font_size_mm = transform_units(fontSize, "pt", "mm")
         if self.coords is not None:
