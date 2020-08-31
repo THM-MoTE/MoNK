@@ -82,7 +82,7 @@ Unsupported SVG elements and attributes:
 - css attribute ``fill-opacity`` and ``stroke-opacity``
 - css ``stroke-width`` values given as ``inherit`` or percentages
 - actual parsing of different marker types for ``marker-start`` and ``marker-end``
-- ``transform`` attributes including skew and scale expressions (directly or in matrix form)
+- ``transform`` attributes including skew expressions (directly or in matrix form)
 - ``<image>``, ``<line>``, ``<polygon>``, ``<polyline>``, and other tags not listed as supported
 - ``<path>`` with "holes" (settings for css property ``fill-rule`` are ignored)
 
@@ -118,11 +118,14 @@ Tips and workarounds for unsupported elements and attributes
 
 The following manual adjustments may be necessary for annotations produced by this extension:
 
-- ``lineThickness`` and ``thickness`` attributes are zoom-invariant in OpenModelica, which can require the use of smaller thickness values
-- ``Text`` elements might not have the correct size, as this can only be approximated without actually rendering the text
-- smooth ``Line`` and ``Polygon`` elements have to be drawn without smooth elements and can then be smoothed afterwards by changing the ``smooth`` parameter in OpenModelica
 - Always use "Save a Copy..." instead of "Save as..." in Inkscape, since ``.mo`` is only an export format that cannot be imported again.
   If you want to change your drawing afterwards, you will still have to save a ``.svg`` version of it.
+- ``lineThickness`` and ``thickness`` attributes are zoom-invariant in OpenModelica, which can require the use of smaller thickness values.
+  For lines, this can be avoided by transforming the stroke to a filled shape by selecting Path -> Stroke to Path in the menu.
+- ``Text`` elements might not have the correct size, as this can only be approximated without actually rendering the text.
+  If exact placement of glyphs is important, you can use the Object to Path feature in the "Path" menu.
+  However, this may then in turn introduce new issues if the resulting path is smooth (see below).
+- Smooth ``Line`` and ``Polygon`` elements have to be drawn without smooth elements and can then be smoothed afterwards by changing the ``smooth`` parameter in OpenModelica.
 - In order to approximate smooth paths for use in Modelica, you can draw a smooth path in Inkscape and then use the "Insert nodes" tool to add new nodes between each two consecutive nodes.
   Usually you should only have to do this once or twice to get satisfactory accuracy to then turn all nodes into corner nodes by clicking "make selected nodes corner" twice.
   This will allow you to transfer the shape to Modelica, where you can then manually add the attribute ``smooth=Smooth.Bezier``.

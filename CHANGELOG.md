@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 * support for corner radius of `<rect>` elements
 * support for `"none"` value for color definitions
 * experimental support for `transform` values with multiple elements
+* support for `transform` values with scale components
 
 ### Changed
 
