@@ -19,11 +19,11 @@ class TestSvg2Modelica(unittest.TestCase):
     def get_expected_and_actual(self, fname):
         res = subprocess.check_output([
             "python", "src/svg2modelica.py", "--strict=true",
-            pathlib.Path("examples") / (fname + ".svg")
+            str(pathlib.Path("examples") / (fname + ".svg"))
         ])
         expected = ""
         fexp = pathlib.Path("examples") / (fname + "_expected.mo")
-        with io.open(fexp, "r", encoding="utf-8") as f:
+        with io.open(str(fexp), "r", encoding="utf-8") as f:
             expected = f.read()
         return res.decode("utf-8"), expected
 
