@@ -13,17 +13,27 @@ class TestSvg2Modelica(unittest.TestCase):
             s.strip().replace('\r\n', '\n')
         self.assertEqual(unify(expected), unify(actual))
 
-    def test_all_primitives(self):
-        self.maxDiff = None
+    def setUp(self):
+        self.maxDiff = None  # allow large string diffs
+
+    def get_expected_and_actual(self, fname):
         res = subprocess.check_output([
             "python", "src/svg2modelica.py", "--strict=true",
-            "examples/all_primitives.svg"
+            pathlib.Path("examples") / (fname + ".svg")
         ])
         expected = ""
-        fexp = "examples/all_primitives_expected.mo"
+        fexp = pathlib.Path("examples") / (fname + "_expected.mo")
         with io.open(fexp, "r", encoding="utf-8") as f:
             expected = f.read()
-        self.assertEqualStdout(expected, res.decode("utf-8"))
+        return res.decode("utf-8"), expected
+
+    def test_all_primitives(self):
+        act, exp = self.get_expected_and_actual("all_primitives")
+        self.assertEqualStdout(exp, act)
+
+    def test_group_transform(self):
+        act, exp = self.get_expected_and_actual("group_transform")
+        self.assertEqualStdout(exp, act)
 
 
 if __name__ == "__main__":
