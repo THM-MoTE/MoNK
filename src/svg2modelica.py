@@ -18,6 +18,10 @@ def identity(x):
     return x
 
 
+def nonzero(x):
+    return abs(x) > 1e-10
+
+
 class MoNKError(Exception):
     def __init__(self, msg):
         self.msg = msg
@@ -492,7 +496,7 @@ class GraphicItem(object):
         # functions (sin(-x) = -sin(x) and cos(-x) = cos(x))
         # therefore we only look for the sign of the diagonal and arbitrarily
         # flip one of the axes if required
-        if abs(mat[1, 0]) < 1e-10:
+        if not nonzero(mat[1, 0]):
             flipped = np.sign(mat[0, 0]) != np.sign(mat[1, 1])
         else:
             flipped = np.sign(mat[1, 0]) == np.sign(mat[0, 1])
@@ -524,7 +528,8 @@ class GraphicItem(object):
         mat = self.get_matrix(el)
         tx, ty, sx, sy, alpha = self.decompose_matrix(mat)
         self.set_origin(tx, ty)
-        self.set_rotation(alpha/np.pi*180)
+        if nonzero(alpha):
+            self.set_rotation(alpha/np.pi*180)
         self.tx = tx
         self.ty = ty
         self.sx = sx
@@ -582,7 +587,7 @@ class FilledShape(object):
 
     def autoset_fill_color(self, el):
         fc = self.find_fill_color(el)
-        if fc is not None:
+        if fc is not None and fc != "{0,0,0}":
             self.add_attribute("fillColor", fc)
 
     def set_line_pattern(self, lp):
@@ -600,7 +605,9 @@ class FilledShape(object):
         return LinePattern.SOLID
 
     def autoset_line_pattern(self, el):
-        self.add_attribute("pattern", self.find_line_pattern(el))
+        lp = self.find_line_pattern(el)
+        if lp != LinePattern.SOLID:
+            self.add_attribute("pattern", lp)
 
     def set_fill_pattern(self, lp):
         self.add_attribute("fillPattern", lp)
@@ -617,7 +624,9 @@ class FilledShape(object):
         return FillPattern.SOLID
 
     def autoset_fill_pattern(self, el):
-        self.add_attribute("fillPattern", self.find_fill_pattern(el))
+        fp = self.find_fill_pattern(el)
+        if fp != FillPattern.NONE:
+            self.add_attribute("fillPattern", fp)
 
     def set_line_thickness(self, x):
         if self.coords is not None:
@@ -790,7 +799,8 @@ class ModelicaRectangle(ModelicaElement, GraphicItem, FilledShape):
             raise MoNKError(
                 "rx and ry must be equal ({} != {})".format(rx, ry)
             )
-        self.set_radius((rx + ry) / 2.0)
+        if nonzero(rx) and nonzero(ry):
+            self.set_radius((rx + ry) / 2.0)
 
     def set_radius(self, cr):
         self.add_attribute("radius", cr)
@@ -951,12 +961,13 @@ class ModelicaLine(ModelicaPath, FilledShape):
 
     def autoset_color(self, el):
         color = self.find_line_color(el)
-        if color is not None:
+        if color is not None and color != "{0,0,0}":
             self.set_color(color)
 
     def autoset_pattern(self, el):
         pattern = self.find_line_pattern(el)
-        self.set_pattern(pattern)
+        if pattern != LinePattern.SOLID:
+            self.set_pattern(pattern)
 
     def autoset_arrow(self, el):
         # if there is a marker, we just assume it's an arrow
@@ -1022,12 +1033,14 @@ class ModelicaText(ModelicaElement, GraphicItem, FilledShape):
         FilledShape.autoset_shape_values(self, el)
         # modelica uses the line color for text while SVG uses the fill color
         # => switch those
-        self.data["lineColor"] = self.data["fillColor"]
-        self.data["pattern"] = self.data["fillPattern"].replace(
-            "FillPattern", "LinePattern"
-        )
-        del self.data["fillColor"]
-        del self.data["fillPattern"]
+        if "fillColor" in self.data:
+            self.data["lineColor"] = self.data["fillColor"]
+            del self.data["fillColor"]
+        if "fillPattern" in self.data:
+            self.data["pattern"] = self.data["fillPattern"].replace(
+                "FillPattern", "LinePattern"
+            )
+            del self.data["fillPattern"]
 
     def autoset_text_string(self, el):
         if tn(el) == "tspan":
@@ -1139,7 +1152,9 @@ class ModelicaText(ModelicaElement, GraphicItem, FilledShape):
         alignInner = get_style_attribute(el.getchildren()[0], "text-anchor")
         if alignInner is not None:
             alignInner = anchor_to_align[alignInner]
-        self.set_horizontal_alignment(alignInner or alignOuter or "left")
+        align = alignInner or alignOuter or "left"
+        if align != "center":
+            self.set_horizontal_alignment(align)
 
     def set_extent(self, x1, y1, x2, y2):
         self.add_attribute(
