@@ -340,14 +340,14 @@ class GraphicItem(object):
         self.offset_y = None
 
     def x_coord(self, x):
-        res = x
+        res = self.descale_x(x)
         if self.coords is not None:
             res = self.coords.normalize_x(res)
         res += self.offset_x
         return res
 
     def y_coord(self, y):
-        res = -y
+        res = self.descale_y(-y)
         if self.coords is not None:
             res = self.coords.normalize_y(res)
         res += self.offset_y
@@ -467,22 +467,34 @@ class GraphicItem(object):
 
     def decompose_matrix(self, mat):
         # decompose transformation matrix to angle + origin form
+        # we assume that the matrix has the following form
+        # sx * cos(alpha)   -sy * sin(alpha)   tx
+        # sx * sin(alpha)    sy * cos(alpha)   ty
+        #      0                   0            1
+        # 1. Get translation
         tx = mat[0, 2]
         ty = mat[1, 2]
-        # remove translational component to obtain rotation matrix
-        rmat = mat - np.array(
-            [[0, 0, tx], [0, 0, ty], [0, 0, 0]], dtype="float32"
-        )
-        # pass vector [1,0] through the rotation matrix
-        rotated_x = np.dot(rmat, np.array([[1], [0], [1]]))
-        # determine angle between starting vector and rotated vector
-        alpha = np.arctan2(rotated_x[1, 0], rotated_x[0, 0])
+        # 2. Get scaling (since sin²(x) + cos²(x) = 1)
+        sx = np.sqrt(mat[0, 0] ** 2 + mat[1, 0] ** 2)
+        sy = np.sqrt(mat[0, 1] ** 2 + mat[1, 1] ** 2)
+        # sign for scaling is ambiguous due to symmetries in trigonometric
+        # functions (sin(-x) = -sin(x) and cos(-x) = cos(x))
+        # therefore we only look for the sign of the diagonal and arbitrarily
+        # flip one of the axes if required
+        if abs(mat[1, 0]) < 1e-10:
+            flipped = np.sign(mat[0, 0]) != np.sign(mat[1, 1])
+        else:
+            flipped = np.sign(mat[1, 0]) == np.sign(mat[0, 1])
+        if flipped:
+            sx *= -1
+        # 3. Remove scaling and obtain rotational angle
+        alpha = np.arctan2(mat[1, 0] / sx, mat[0, 0] / sx)
         if self.strict:
             # check that decomposed matrix equals the original matrix
             ref = np.array(
                 [
-                    [np.cos(alpha), -np.sin(alpha), tx],
-                    [np.sin(alpha), np.cos(alpha), ty],
+                    [sx * np.cos(alpha), sy * -np.sin(alpha), tx],
+                    [sx * np.sin(alpha), sy * np.cos(alpha), ty],
                     [0, 0, 1]
                 ],
                 dtype="float32"
@@ -491,17 +503,30 @@ class GraphicItem(object):
                     mat.flatten(), ref.flatten(), rtol=1e-4, atol=1e-3
             )):
                 raise MoNKError("".join([
-                    "Transformation matrix {0} is not reducible to angle + ",
-                    "origin form.\n\n",
+                    "Transformation matrix is not reducible to angle + ",
+                    "origin [+ scaling] form.\n\n",
                     "{0}\n!=\n{1}"
                 ]).format(mat, ref))
-        return tx, ty, alpha
+        return tx, ty, sx, sy, alpha
 
     def autoset_rotation_and_origin(self, el):
         mat = self.get_matrix(el)
-        tx, ty, alpha = self.decompose_matrix(mat)
+        tx, ty, sx, sy, alpha = self.decompose_matrix(mat)
         self.set_origin(tx, ty)
         self.set_rotation(alpha/np.pi*180)
+        self.tx = tx
+        self.ty = ty
+        self.sx = sx
+        self.sy = sy
+
+    def descale_x(self, x):
+        return self.descale(x, self.sx)
+
+    def descale_y(self, y):
+        return self.descale(y, self.sy)
+
+    def descale(self, val, s):
+        return val * 1/s
 
 
 class FilledShape(object):
