@@ -527,6 +527,9 @@ class GraphicItem(object):
     def scale_y(self, y):
         return self.scale(y, self.sy)
 
+    def scale_thickness(self, x):
+        return self.scale(x, np.mean([self.sx, self.sy]))
+
     def scale(self, val, s):
         return val * s
 
@@ -610,6 +613,7 @@ class FilledShape(object):
     def set_line_thickness(self, x):
         if self.coords is not None:
             x = self.coords.normalize_delta(x)
+            x = self.scale_thickness(x)
         self.add_attribute("lineThickness", to_s(x))
 
     def find_line_thickness(self, el):
@@ -956,6 +960,7 @@ class ModelicaLine(ModelicaPath, FilledShape):
     def set_thickness(self, thick):
         if self.coords is not None:
             thick = self.coords.normalize_delta(thick)
+            thick = self.scale_thickness(thick)
         self.add_attribute("thickness", to_s(thick))
 
     def set_pattern(self, pattern):
@@ -1127,6 +1132,7 @@ class ModelicaText(ModelicaElement, GraphicItem, FilledShape):
         self.font_size_mm = transform_units(fontSize, "pt", "mm")
         if self.coords is not None:
             fontSize = self.coords.normalize_delta(fontSize)
+            fontSize = self.scale_thickness(fontSize)
         self.add_attribute("fontSize", to_s(fontSize))
 
     def set_horizontal_alignment(self, align):
