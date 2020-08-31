@@ -1058,7 +1058,10 @@ class ModelicaText(ModelicaElement, GraphicItem, FilledShape):
         text_w = max([len(s) for s in text.split("\n")])
         text_h = len(text.split("\n"))
         # guess how much pixels (or mm) that would be based on font_size
-        w = text_w * self.font_size_mm * 0.5
+        # designers tend to be obsessed with the golden ratio
+        # => we use this value to guess ratio between font size and character
+        # advancement (https://medium.com/@zkareemz/golden-ratio-62b3b6d4282a)
+        w = text_w * self.font_size_mm * 1/1.618
         h = text_h * self.font_size_mm \
             + max(0, text_h-1) * self.font_size_mm * 0.2
         ha = self.data["horizontalAlignment"]
