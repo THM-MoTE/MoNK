@@ -238,8 +238,8 @@ class ModelicaGraphicsContainer(object):
         self.elems = []
         self.coords = coords
         self.strict = strict
-        self.add_descendants(doc.getroot())
         self.text_extent = text_extent
+        self.add_descendants(doc.getroot())
 
     def to_modelica(self, el):
         tag = tn(el)
@@ -990,10 +990,6 @@ class ModelicaText(ModelicaElement, GraphicItem, FilledShape):
     def __init__(
             self, el, n_indent=5, coords=None, strict=False, extent="normal"
     ):
-        GraphicItem.__init__(self, coords)
-        ModelicaElement.__init__(
-            self, "Text", el, n_indent, coords=coords, strict=strict
-        )
         self.font_size_mm = None
         if extent == "normal":
             self.autoscale_font = False
@@ -1008,6 +1004,10 @@ class ModelicaText(ModelicaElement, GraphicItem, FilledShape):
             raise MoNKError(
                 "text extent mode {} not recognized".format(extent)
             )
+        GraphicItem.__init__(self, coords)
+        ModelicaElement.__init__(
+            self, "Text", el, n_indent, coords=coords, strict=strict
+        )
 
     def add_attributes(self, el):
         ModelicaElement.add_attributes(self, el)
