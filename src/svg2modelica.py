@@ -340,14 +340,14 @@ class GraphicItem(object):
         self.offset_y = None
 
     def x_coord(self, x):
-        res = self.descale_x(x)
+        res = self.scale_x(x)
         if self.coords is not None:
             res = self.coords.normalize_x(res)
         res += self.offset_x
         return res
 
     def y_coord(self, y):
-        res = self.descale_y(-y)
+        res = self.scale_y(-y)
         if self.coords is not None:
             res = self.coords.normalize_y(res)
         res += self.offset_y
@@ -519,14 +519,14 @@ class GraphicItem(object):
         self.sx = sx
         self.sy = sy
 
-    def descale_x(self, x):
-        return self.descale(x, self.sx)
+    def scale_x(self, x):
+        return self.scale(x, self.sx)
 
-    def descale_y(self, y):
-        return self.descale(y, self.sy)
+    def scale_y(self, y):
+        return self.scale(y, self.sy)
 
-    def descale(self, val, s):
-        return val * 1/s
+    def scale(self, val, s):
+        return val * s
 
 
 class FilledShape(object):
