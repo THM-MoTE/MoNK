@@ -1097,10 +1097,12 @@ class ModelicaText(ModelicaElement, GraphicItem, FilledShape):
         # => we use this value to guess ratio between font size and character
         # advancement (https://medium.com/@zkareemz/golden-ratio-62b3b6d4282a)
         w = text_w * self.font_size_mm * 1/1.618
-        h = text_h * self.font_size_mm \
-            + max(0, text_h-1) * self.font_size_mm * 0.2  # 1.2 line spacing
-        baseline_rel = 0.2
+        # make line height slightly larger than font size
         line_height = self.font_size_mm * 1.1
+        # add line spacing after every line
+        h = text_h * line_height \
+            + text_h * self.font_size_mm * 0.2  # 1.2 line spacing
+        baseline_rel = 0.1  # relative position of baseline within line_height
         ha = self.data["horizontalAlignment"]
         if self.zero_width_extent:
             x1 = x
