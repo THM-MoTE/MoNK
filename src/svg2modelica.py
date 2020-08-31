@@ -1073,7 +1073,10 @@ class ModelicaText(ModelicaElement, GraphicItem, FilledShape):
     def autoset_font(self, el):
         outerName, outerSize, outerStyle = self.get_font(el)
         innerName, innerSize, innerStyle = self.get_font(el.getchildren()[0])
-        fontSize = 0 if self.autoscale_font else (innerSize or outerSize or 0)
+        fontSize = innerSize or outerSize or 0
+        self.font_size_mm = transform_units(fontSize, "pt", "mm")
+        if self.autoscale_font:
+            fontSize = 0  # reset font size, but keep font_size_mm for extent
         self.set_font(
             innerName or outerName or "Arial",
             fontSize,
@@ -1161,7 +1164,6 @@ class ModelicaText(ModelicaElement, GraphicItem, FilledShape):
         if fontName not in ["Arial", "sans-serif"]:
             self.add_attribute("fontName", '"' + fontName + '"')
         # save unnormalized font size to calculate extent later
-        self.font_size_mm = transform_units(fontSize, "pt", "mm")
         if self.coords is not None:
             fontSize = self.coords.normalize_delta(fontSize)
             fontSize = self.scale_thickness(fontSize)
