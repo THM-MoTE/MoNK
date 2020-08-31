@@ -1070,23 +1070,30 @@ class ModelicaText(ModelicaElement, GraphicItem, FilledShape):
         # advancement (https://medium.com/@zkareemz/golden-ratio-62b3b6d4282a)
         w = text_w * self.font_size_mm * 1/1.618
         h = text_h * self.font_size_mm \
-            + max(0, text_h-1) * self.font_size_mm * 0.2
+            + max(0, text_h-1) * self.font_size_mm * 0.2  # 1.2 line spacing
+        baseline_rel = 0.2
+        line_height = self.font_size_mm * 1.1
         ha = self.data["horizontalAlignment"]
-        if ha == "TextAlignment.Left":
+        if self.zero_width_extent:
             x1 = x
-            y1 = y - 0.8 * self.font_size_mm
+            y1 = y
+            x2 = x
+            y2 = y + h - (1 - baseline_rel) * line_height
+        elif ha == "TextAlignment.Left":
+            x1 = x
+            y1 = y - (1 - baseline_rel) * line_height
             x2 = x + w
-            y2 = y + h - 0.8 * self.font_size_mm
+            y2 = y + h - (1 - baseline_rel) * line_height
         elif ha == "TextAlignment.Right":
             x1 = x - w
-            y1 = y - 0.8 * self.font_size_mm
+            y1 = y - (1 - baseline_rel) * line_height
             x2 = x
-            y2 = y + h - 0.8 * self.font_size_mm
+            y2 = y + h - (1 - baseline_rel) * line_height
         elif ha == "TextAlignment.Center":
             x1 = x - w/2
-            y1 = y - w/2 + 0.2 * self.font_size_mm
+            y1 = y - w/2 + baseline_rel * line_height
             x2 = x + w/2
-            y2 = y + w/2 + 0.2 * self.font_size_mm
+            y2 = y + w/2 + baseline_rel * line_height
         self.set_extent(
             self.x_coord(x1), self.y_coord(y1),
             self.x_coord(x2), self.y_coord(y2)
