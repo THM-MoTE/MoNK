@@ -85,6 +85,7 @@ Unsupported SVG elements and attributes:
 - ``transform`` attributes including skew expressions (directly or in matrix form)
 - ``<image>``, ``<line>``, ``<polygon>``, ``<polyline>``, and other tags not listed as supported
 - ``<path>`` with "holes" (settings for css property ``fill-rule`` are ignored)
+- subscripts and superscripts in ``<text>`` elements
 
 
 Supported Modelica elements and attributes:
