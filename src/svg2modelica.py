@@ -1199,6 +1199,7 @@ if __name__ == '__main__':
     strict = False
     modelname = "DummyModel"
     norm_extent = False
+    text_extent = "normal"
     for k, v in opts:
         if k in ("-s", "--strict"):
             strict = v in ["true", "True"]
