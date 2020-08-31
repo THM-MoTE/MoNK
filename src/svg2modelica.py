@@ -1118,6 +1118,8 @@ class ModelicaText(ModelicaElement, GraphicItem, FilledShape):
         baseline_rel = 0.1  # relative position of baseline within line_height
         ha = self.data["horizontalAlignment"]
         if self.zero_width_extent:
+            # TODO Modelica spec says that alignment must still be respected
+            # but OpenModelica does not seem to do so? => stick with OM for now
             x1 = x
             y1 = y
             x2 = x
