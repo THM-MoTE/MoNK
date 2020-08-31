@@ -49,7 +49,10 @@ def tn(el):
     return etree.QName(el.tag).localname
 
 
-def parse_svg(fname, modelname, strict=False, normalize_extent=False):
+def parse_svg(
+        fname, modelname, strict=False, normalize_extent=False,
+        text_extent="normal"
+):
     with open(fname, "rb") as f:
         parser = etree.XMLParser(encoding="utf-8", ns_clean=True)
         document = etree.parse(f, parser=parser)
@@ -59,7 +62,8 @@ def parse_svg(fname, modelname, strict=False, normalize_extent=False):
         + "{0});\n" \
         + "end {1};"
     main_icon = ModelicaIcon(
-        document, normalize_extent=normalize_extent, strict=strict
+        document, normalize_extent=normalize_extent, strict=strict,
+        text_extent=text_extent
     )
     print(res.format(INDENT, modelname, main_icon))
 
@@ -137,7 +141,7 @@ class ModelicaElement(object):
 class ModelicaIcon(ModelicaElement):
     def __init__(
             self, doc, n_indent=3, normalize_extent=False, coords=None,
-            strict=False
+            strict=False, text_extent="normal"
     ):
         # needs to be initialized first, because add_attribute is called in
         # superclass constructor
@@ -156,7 +160,7 @@ class ModelicaIcon(ModelicaElement):
             "graphics",
             ModelicaGraphicsContainer(
                 doc, n_indent=self.n_indent+1, coords=coords,
-                strict=self.strict
+                strict=self.strict, text_extent=text_extent
             )
         )
 
@@ -226,12 +230,16 @@ class ModelicaCoordinateSystem(ModelicaElement):
 
 
 class ModelicaGraphicsContainer(object):
-    def __init__(self, doc, n_indent=4, coords=None, strict=False):
+    def __init__(
+            self, doc, n_indent=4, coords=None, strict=False,
+            text_extent="normal"
+    ):
         self.n_indent = n_indent
         self.elems = []
         self.coords = coords
         self.strict = strict
         self.add_descendants(doc.getroot())
+        self.text_extent = text_extent
 
     def to_modelica(self, el):
         tag = tn(el)
@@ -271,7 +279,8 @@ class ModelicaGraphicsContainer(object):
             )
         elif tag == "text":
             return ModelicaText(
-                el, self.n_indent+1, coords=self.coords, strict=self.strict
+                el, self.n_indent+1, coords=self.coords, strict=self.strict,
+                extent=self.text_extent
             )
         else:
             if self.strict:
@@ -978,12 +987,27 @@ class ModelicaLine(ModelicaPath, FilledShape):
 
 
 class ModelicaText(ModelicaElement, GraphicItem, FilledShape):
-    def __init__(self, el, n_indent=5, coords=None, strict=False):
+    def __init__(
+            self, el, n_indent=5, coords=None, strict=False, extent="normal"
+    ):
         GraphicItem.__init__(self, coords)
         ModelicaElement.__init__(
             self, "Text", el, n_indent, coords=coords, strict=strict
         )
         self.font_size_mm = None
+        if extent == "normal":
+            self.autoscale_font = False
+            self.zero_width_extent = False
+        elif extent == "flow":
+            self.autoscale_font = False
+            self.zero_width_extent = True
+        elif extent == "scaled":
+            self.autoscale_font = True
+            self.zero_width_extent = False
+        else:
+            raise MoNKError(
+                "text extent mode {} not recognized".format(extent)
+            )
 
     def add_attributes(self, el):
         ModelicaElement.add_attributes(self, el)
@@ -1049,9 +1073,10 @@ class ModelicaText(ModelicaElement, GraphicItem, FilledShape):
     def autoset_font(self, el):
         outerName, outerSize, outerStyle = self.get_font(el)
         innerName, innerSize, innerStyle = self.get_font(el.getchildren()[0])
+        fontSize = 0 if self.autoscale_font else (innerSize or outerSize or 0)
         self.set_font(
             innerName or outerName or "Arial",
-            innerSize or outerSize or "0",
+            fontSize,
             innerStyle or outerStyle or ""
         )
 
@@ -1157,14 +1182,14 @@ class ModelicaText(ModelicaElement, GraphicItem, FilledShape):
 if __name__ == '__main__':
     try:
         opts, args = getopt.getopt(
-            sys.argv[1:], "m:s:n:",
-            ["modelname=", "strict=", "normalize_extent="]
+            sys.argv[1:], "m:s:n:t:",
+            ["modelname=", "strict=", "normalize_extent=", "text_extent="]
         )
     except getopt.GetoptError as err:
         print(str(err))
         print(
             "usage: python svg2modelica.py [-m modelname] [-s true/false] "
-            + "[-n true/false] filename"
+            + "[-n true/false] [-t normal/scaled/flow] filename"
         )
         exit(1)
     strict = False
@@ -1177,5 +1202,10 @@ if __name__ == '__main__':
             modelname = v
         elif k in ("-n", "--normalize_extent"):
             norm_extent = v in ["true", "True"]
+        elif k in ("-t", "--text_extent"):
+            text_extent = v
     fname = args[0]
-    parse_svg(fname, modelname, strict=strict, normalize_extent=norm_extent)
+    parse_svg(
+        fname, modelname, strict=strict, normalize_extent=norm_extent,
+        text_extent=text_extent
+    )

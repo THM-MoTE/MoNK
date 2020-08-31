@@ -5,7 +5,12 @@
   <dependency type="executable" location="inx">svg2modelica.py</dependency>
   <param name="modelname" type="string" gui-text="Model name (should be the same as the file name)">DummyModel</param>
   <param name="strict" type="boolean" gui-text="Strict (non-translatable elements reported as error)">false</param>
-  <param name="normalize_extent" type="boolean" gui-text=" Normalize extent of icon to fit within {{-100, -100}, {100, 100}}">false</param>
+  <param name="normalize_extent" type="boolean" gui-text="Normalize extent of icon to fit within {{-100, -100}, {100, 100}}">false</param>
+  <param name="text_extent" type="optiongroup" gui-text="Mode for setting extent of text items">
+    <option value="normal">set font size and approximated extent</option>
+    <option value="flow">set width of extent to zero for limitless flow</option>
+    <option value="scaled">set font size to zero to scale by extent</option>
+  </param>
   <output>
     <extension>.mo</extension>
     <mimetype>text/plain</mimetype>
