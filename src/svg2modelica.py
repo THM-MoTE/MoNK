@@ -542,7 +542,7 @@ class GraphicItem(object):
         return self.scale(y, self.sy)
 
     def scale_thickness(self, x):
-        return self.scale(x, np.mean([self.sx, self.sy]))
+        return self.scale(x, np.mean([abs(self.sx), abs(self.sy)]))
 
     def scale(self, val, s):
         return val * s
