@@ -12,7 +12,7 @@ import io
 class TestSvg2Modelica(unittest.TestCase):
     def assertEqualStdout(self, expected, actual):
         def unify(s):
-            s.strip().replace('\r\n', '\n')
+            return s.strip().replace('\r\n', '\n')
         self.assertEqual(unify(expected), unify(actual))
 
     def setUp(self):
