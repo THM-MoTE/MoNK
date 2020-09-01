@@ -1,4 +1,4 @@
-model group_transform
+model DummyModel
     annotation(
         Icon(
             coordinateSystem(
@@ -21,4 +21,4 @@ model group_transform
             }
         )
     );
-end group_transform;
+end DummyModel;
