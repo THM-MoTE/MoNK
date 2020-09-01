@@ -556,7 +556,7 @@ class FilledShape(object):
 
     def autoset_line_color(self, el):
         lc = self.find_line_color(el)
-        if lc is not None:
+        if lc is not None and lc != "{0,0,0}":
             self.add_attribute("lineColor", lc)
 
     def find_line_color(self, el):
