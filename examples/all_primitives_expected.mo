@@ -25,7 +25,7 @@ model DummyModel
                     origin= {0,0}
                 ),
                 Text(
-                    extent= {{12.86,-421.79},{112.86,-557.79}},
+                    extent= {{12.86,-414.19},{136.47,-570.19}},
                     fontSize= 113.39,
                     horizontalAlignment= TextAlignment.Left,
                     lineThickness= 1,
