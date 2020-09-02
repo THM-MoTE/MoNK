@@ -842,75 +842,63 @@ class ModelicaPath(ModelicaElement, GraphicItem):
         x = 0
         y = 0
         mode = "abs"
+        segtype = ""
         width = 2
         while i < len(tokens):
-            if tokens[i] == 'M':  # move to absolute
-                x = tokens[i+1]
-                y = tokens[i+2]
-                mode = "abs"
-                width = 2
-                i += 3
-            elif tokens[i] == 'm':  # move to relative
-                x += tokens[i+1]
-                y += tokens[i+2]
-                mode = "rel"
-                width = 2
-                i += 3
-            elif tokens[i] == 'L':  # line to absolute
-                if len(points) == 0:
-                    points.append([x, y])
-                x = tokens[i+1]
-                y = tokens[i+2]
-                points.append([x, y])
-                mode = "abs"
-                width = 2
-                i += 3
-            elif tokens[i] == 'l':  # line to relative
-                if len(points) == 0:
-                    points.append([x, y])
-                x += tokens[i+1]
-                y += tokens[i+2]
-                points.append([x, y])
-                mode = "rel"
-                width = 2
-                i += 3
-            elif tokens[i] == 'H':  # horizontal line to absolute
-                if len(points) == 0:
-                    points.append([x, y])
-                x = tokens[i+1]
-                points.append([x, y])
+            if isinstance(tokens[i], str):
+                segtype = tokens[i]
+                i += 1
+
+            if segtype == 'M':  # move to absolute
+                x = tokens[i]
+                y = tokens[i+1]
                 i += 2
-            elif tokens[i] == 'h':  # horizontal line to relative
-                if len(points) == 0:
-                    points.append([x, y])
-                x += tokens[i+1]
-                points.append([x, y])
+                segtype = 'L'
+            elif segtype == 'm':  # move to relative
+                x += tokens[i]
+                y += tokens[i+1]
                 i += 2
-            elif tokens[i] == 'V':  # vertical line to absolute
+                segtype = 'l'
+            elif segtype == 'L':  # line to absolute
                 if len(points) == 0:
                     points.append([x, y])
+                x = tokens[i]
                 y = tokens[i+1]
                 points.append([x, y])
                 i += 2
-            elif tokens[i] == 'v':  # vertical line to relative
+            elif segtype == 'l':  # line to relative
                 if len(points) == 0:
                     points.append([x, y])
+                x += tokens[i]
                 y += tokens[i+1]
                 points.append([x, y])
                 i += 2
-            elif tokens[i] in ['z', 'Z']:
-                i += 1
-            elif isinstance(tokens[i], float):
+            elif segtype == 'H':  # horizontal line to absolute
                 if len(points) == 0:
                     points.append([x, y])
-                if mode == "abs":
-                    x = tokens[i]
-                    y = tokens[i+1]
-                else:
-                    x += tokens[i]
-                    y += tokens[i+1]
+                x = tokens[i]
                 points.append([x, y])
-                i += width
+                i += 1
+            elif segtype == 'h':  # horizontal line to relative
+                if len(points) == 0:
+                    points.append([x, y])
+                x += tokens[i]
+                points.append([x, y])
+                i += 1
+            elif segtype == 'V':  # vertical line to absolute
+                if len(points) == 0:
+                    points.append([x, y])
+                y = tokens[i]
+                points.append([x, y])
+                i += 1
+            elif segtype == 'v':  # vertical line to relative
+                if len(points) == 0:
+                    points.append([x, y])
+                y += tokens[i]
+                points.append([x, y])
+                i += 1
+            elif segtype in ['z', 'Z']:
+                pass
             else:
                 # TODO handle smooth paths correctly (as far as possible)
                 # NOT SUPPORTED: smooth paths
