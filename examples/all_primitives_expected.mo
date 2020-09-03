@@ -28,9 +28,7 @@ model DummyModel
                     extent= {{12.86,-414.19},{136.47,-570.19}},
                     fontSize= 113.39,
                     horizontalAlignment= TextAlignment.Left,
-                    lineThickness= 1,
                     origin= {0,0},
-                    pattern= LinePattern.Solid,
                     textString= "Fofoo\nBar\nBaz"
                 ),
                 Line(

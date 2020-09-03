@@ -1026,17 +1026,12 @@ class ModelicaText(ModelicaElement, GraphicItem, FilledShape):
         self.autoset_extent(el)
 
     def autoset_shape_values(self, el):
-        FilledShape.autoset_shape_values(self, el)
         # modelica uses the line color for text while SVG uses the fill color
         # => switch those
+        self.autoset_fill_color(el)
         if "fillColor" in self.data:
-            self.data["lineColor"] = self.data["fillColor"]
+            self.data["textColor"] = self.data["fillColor"]
             del self.data["fillColor"]
-        if "fillPattern" in self.data:
-            self.data["pattern"] = self.data["fillPattern"].replace(
-                "FillPattern", "LinePattern"
-            )
-            del self.data["fillPattern"]
 
     def autoset_text_string(self, el):
         if tn(el) == "tspan":
@@ -1195,7 +1190,7 @@ class ModelicaText(ModelicaElement, GraphicItem, FilledShape):
         alignType = css_align_to_modelica[align]
         self.add_attribute("horizontalAlignment", alignType)
 
-    def has_stroke(self):
+    def has_fill(self):
         return True
 
 
