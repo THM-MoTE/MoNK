@@ -62,7 +62,6 @@ model DummyModel
                 Rectangle(
                     extent= {{493.25,-644.38},{855.01,-729.61}},
                     fillPattern= FillPattern.Solid,
-                    lineThickness= 7.09,
                     origin= {0,0},
                     pattern= LinePattern.None,
                     rotation= -22.44

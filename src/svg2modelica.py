@@ -556,7 +556,7 @@ class FilledShape(object):
 
     def autoset_line_color(self, el):
         lc = self.find_line_color(el)
-        if lc is not None and lc != "{0,0,0}":
+        if lc is not None and lc != "{0,0,0}" and self.has_stroke():
             self.add_attribute("lineColor", lc)
 
     def find_line_color(self, el):
@@ -587,7 +587,7 @@ class FilledShape(object):
 
     def autoset_fill_color(self, el):
         fc = self.find_fill_color(el)
-        if fc is not None and fc != "{0,0,0}":
+        if fc is not None and fc != "{0,0,0}" and self.has_fill():
             self.add_attribute("fillColor", fc)
 
     def set_line_pattern(self, lp):
@@ -611,6 +611,14 @@ class FilledShape(object):
 
     def set_fill_pattern(self, lp):
         self.add_attribute("fillPattern", lp)
+
+    def has_fill(self):
+        return "fillPattern" in self.data \
+            and self.data["fillPattern"] != FillPattern.NONE
+
+    def has_stroke(self):
+        return "pattern" not in self.data \
+            or self.data["pattern"] != LinePattern.NONE
 
     def find_fill_pattern(self, el):
         att = get_style_attribute(el, "fill")
@@ -648,7 +656,7 @@ class FilledShape(object):
 
     def autoset_line_thickness(self, el):
         val = self.find_line_thickness(el)
-        if val is not None:
+        if val is not None and self.has_stroke():
             self.set_line_thickness(val)
 
     def css_hex_to_modelica(self, hexstr):
@@ -671,10 +679,10 @@ class FilledShape(object):
         return "{%d,%d,%d}" % rgb
 
     def autoset_shape_values(self, el):
-        self.autoset_line_color(el)
-        self.autoset_fill_color(el)
         self.autoset_line_pattern(el)
         self.autoset_fill_pattern(el)
+        self.autoset_line_color(el)
+        self.autoset_fill_color(el)
         self.autoset_line_thickness(el)
 
 
@@ -1186,6 +1194,9 @@ class ModelicaText(ModelicaElement, GraphicItem, FilledShape):
         }
         alignType = css_align_to_modelica[align]
         self.add_attribute("horizontalAlignment", alignType)
+
+    def has_stroke(self):
+        return True
 
 
 if __name__ == '__main__':
