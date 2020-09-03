@@ -54,8 +54,7 @@ model DummyModel
                     fillColor= {151,0,167},
                     fillPattern= FillPattern.Solid,
                     lineThickness= 10,
-                    origin= {0,0},
-                    startAngle= 0
+                    origin= {0,0}
                 ),
                 Rectangle(
                     extent= {{493.25,-644.38},{855.01,-729.61}},
