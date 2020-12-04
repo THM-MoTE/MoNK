@@ -72,6 +72,10 @@ def determine_user_ext(forcedefault=False):
     )
 
 
+# NOTE: if we want to use PEP517, there is currently no way to run these
+# custom commands directly via pip due to
+# https://github.com/pypa/pip/issues/2677
+
 class BdistInkscape(Command):
     user_options = []
 
@@ -163,9 +167,11 @@ setup(
         'Programming Language :: Python :: 2',
         'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.6'
+        'Programming Language :: Python :: 3.7'
     ],
     install_requires=[
+        'setuptools',  # ensures that we can run `python setup.py install_ink`
+                       # after we installed with `pip install .` using PEP517
         'future',
         'lxml',
         'numpy==1.16.4; python_version < "3.0.0"',
