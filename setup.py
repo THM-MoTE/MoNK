@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 from __future__ import (absolute_import, division,
                         print_function)
+from builtins import *
+
 import os
 import glob
 import shutil
@@ -9,8 +11,6 @@ import zipfile
 from setuptools import setup, Command
 import io
 import sys
-if sys.version_info[0] < 3:
-    from builtins import *
 
 
 data_files = [
