@@ -20,6 +20,10 @@ jobs:
     - uses: actions/checkout@v2
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v2
+    # TODO this is only required, because I did not get PEP517 dependencies to work yet
+    - name: Prepare installation
+      run: |
+        pip install future setuptools
       with:
         python-version: ${{ matrix.python-version }}
     - name: Install MoNK
