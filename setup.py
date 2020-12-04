@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
-import sys
+from __future__ import (absolute_import, division,
+                        print_function)
 import os
 import glob
 import shutil
@@ -7,10 +8,8 @@ import tarfile
 import zipfile
 from setuptools import setup, Command
 import io
-
+import sys
 if sys.version_info[0] < 3:
-    from __future__ import (absolute_import, division,
-                            print_function)
     from builtins import *
 
 
