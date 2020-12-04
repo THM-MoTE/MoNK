@@ -24,7 +24,7 @@ jobs:
         python-version: ${{ matrix.python-version }}
     - name: Install MoNK
       run: |
-        python setup.py install
+        pip install .
         python setup.py install_ink --defaultext
     - name: Run unit tests
       run: |
