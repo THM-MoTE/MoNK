@@ -167,7 +167,6 @@ setup(
     ],
     install_requires=[
         'future',
-        'setuptools',
         'lxml',
         'numpy==1.16.4; python_version < "3.0.0"',
         'numpy; python_version >= "3.6.0"',
