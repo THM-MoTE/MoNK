@@ -23,8 +23,10 @@ jobs:
       with:
         python-version: ${{ matrix.python-version }}
     - name: Install MoNK
+      # using pip install to make use of pyproject.toml
+      # --no-build-isolation: disable build isolation to run custom command
       run: |
-        pip install .
+        pip install --no-build-isolation .
         python setup.py install_ink --defaultext
     - name: Run unit tests
       run: |
