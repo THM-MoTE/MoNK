@@ -1,8 +1,4 @@
 # -*- coding: utf-8 -*-
-from __future__ import (absolute_import, division,
-                        print_function)
-from builtins import *
-
 import sys
 import os
 import glob
@@ -11,6 +7,12 @@ import tarfile
 import zipfile
 from setuptools import setup, Command
 import io
+
+if sys.version_info[0] < 3:
+    from __future__ import (absolute_import, division,
+                            print_function)
+    from builtins import *
+
 
 data_files = [
     (os.path.relpath(os.path.dirname(x), "res"), [x])
