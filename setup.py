@@ -168,8 +168,9 @@ setup(
         'future',
         'setuptools',
         'lxml',
-        'numpy',
-        'pathlib'  # for python < 3.3
+        'numpy==1.16.4; python_version < "3.0.0"',
+        'numpy; python_version >= "3.6.0"',
+        'pathlib; python_version < "3.3.0"'  # for python < 3.3
     ],
     cmdclass={
         'install_ink': InstallToExtensionDir,
